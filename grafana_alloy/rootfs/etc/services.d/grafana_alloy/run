@@ -28,4 +28,4 @@ CONFIG_FILE="/config.alloy"
 #  CONFIG_FILE="/custom/config/config.alloy"
 #fi
 
-exec /usr/bin/grafana-alloy run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/config $CONFIG_FILE
+exec /usr/bin/grafana-alloy run --server.http.listen-addr=172.30.32.2:8099 --storage.path=/config $CONFIG_FILE
