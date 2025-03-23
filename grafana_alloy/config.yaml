@@ -1,6 +1,6 @@
 name: "Grafana Alloy"
 description: "Send metrics & logs to Grafana Cloud or your own Grafana observability stack"
-version: "0.0.9"
+version: "0.0.10"
 slug: "grafana_alloy"
 init: false
 arch:
@@ -30,5 +30,4 @@ map:
 #ports_description:
 #  8099/tcp: "Debug UI"
 ingress: true
-ingress_port: 12345
 image: "ghcr.io/spechtlabs/hass-addon-grafana-alloy-{arch}"
