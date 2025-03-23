@@ -8,4 +8,4 @@ labels:
   org.opencontainers.image.licenses: "Apache License 2.0"
   org.opencontainers.image.vendor: "Specht Labs"
 args:
-  ALLOY_VERSION: "v1.6.0"
+  ALLOY_VERSION: "v1.7.5"
