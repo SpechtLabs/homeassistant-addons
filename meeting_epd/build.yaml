@@ -1,0 +1,10 @@
+build_from:
+  amd64: "ghcr.io/home-assistant/amd64-base:3.21"
+  aarch64: "ghcr.io/home-assistant/aarch64-base:3.21"
+labels:
+  org.opencontainers.image.title: "Home Assistant Add-on: Meeting E-Paper Display (EPD) Server"
+  org.opencontainers.image.description: "A lightweight, configurable server to serve iCal calendars over gRPC and REST for the E-Paper meeting-room display project."
+  org.opencontainers.image.source: "https://github.com/SpechtLabs/homeassistant-addons"
+  org.opencontainers.image.licenses: "BSD 3-Clause "
+  org.opencontainers.image.vendor: "Specht Labs"
+
