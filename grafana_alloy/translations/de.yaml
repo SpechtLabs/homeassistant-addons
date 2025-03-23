@@ -1,0 +1,4 @@
+configuration:
+  alloy_config:
+    name: Alloy Konfiguration
+    description: Deine Grafana Alloy Konfiguration

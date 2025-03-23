@@ -1,0 +1,4 @@
+# https://developers.home-assistant.io/docs/add-ons/repository#repository-configuration
+name: SpechtLabs Home Assistant add-on repository
+url: 'https://github.com/SpechtLabs/homeassistant-addons'
+maintainer: Cedric Kienzler <cedi@specht-labs.de>
