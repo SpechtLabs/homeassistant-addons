@@ -1,10 +1,11 @@
 name: "Home Assistant Add-on: Meeting E-Paper Display (EPD) Server"
 description: "The server component for the meetingroom display epd"
-version: "0.1.1"
+version: "0.1.2"
 slug: "meetingepd"
 url: "https://github.com/cedi/ical-to-restapi"
 codenotary: "cedi@specht-labs.de"
 startup: services
+image: "ghcr.io/spechtlabs/hass-addon-meeting-epd-{arch}"
 
 arch:
   - amd64
