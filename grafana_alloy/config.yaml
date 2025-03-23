@@ -1,15 +1,25 @@
 name: "Grafana Alloy"
 description: "Send metrics & logs to Grafana Cloud or your own Grafana observability stack"
-version: "0.0.4"
+version: "0.0.5"
 slug: "grafana_alloy"
 init: false
 arch:
   - amd64
   - aarch64
 options:
-  alloy_config: null
+  tenant_id: null
+  loki_endpoint: null
+  mimir_endpoint: null
+  instance_name: homeassistant
+  scrape_interval: 60s
+  log_level: info
 schema:
-  alloy_config: str
+  tenant_id: str
+  loki_endpoint: str
+  mimir_endpoint: str
+  instance_name: str?
+  scrape_interval: str?
+  log_level: list(debug|info|warn|error)
 homeassistant_api: true
 map:
   - type: homeassistant_config

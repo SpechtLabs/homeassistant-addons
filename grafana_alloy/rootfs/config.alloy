@@ -5,9 +5,20 @@ import.git "grafana_cloud" {
   pull_frequency = "0s"
 }
 
-grafana_cloud.stack "receivers" {
-  stack_name = env("STACK_NAME")
-  token = env("ACCESS_TOKEN")
+loki.write "grafana_loki" {
+  endpoint {
+    url       = env("LOKI_ENDPOINT")
+    tenant_id = env("TENANT_ID")
+  }
+}
+
+prometheus.remote_write "mimir" {
+  endpoint {
+    url = env("MIMIR_ENDPOINT")
+    headers = {
+      "X-Scope-OrgID" = env("TENANT_ID"),
+    }
+  }
 }
 
 logging {
@@ -17,16 +28,18 @@ logging {
 }
 
 loki.process "alloy" {
-  forward_to = [grafana_cloud.stack.receivers.logs]
+  forward_to = [loki.write.grafana_loki.receiver]
   stage.static_labels {
     values = {
       instance = env("INSTANCE_NAME"),
+      hostname = env("HOST"),
+      component = "homeassistant",
     }
   }
 }
 
 prometheus.scrape "alloy" {
-  forward_to = [grafana_cloud.stack.receivers.metrics]
+  forward_to = [prometheus.remote_write.mimir.receiver]
   targets = [
     {
       "__address__" = "0.0.0.0:80",
@@ -40,15 +53,22 @@ loki.source.file "homeassistant" {
   forward_to = [loki.process.homeassistant.receiver]
   targets = [
     {
-      "__path__" = "/homeassistant/home-assistant.log",
+      "__path__" = "/custom/config/home-assistant.log",
       "instance" = env("INSTANCE_NAME"),
       "component" = "homeassistant",
+      "hostname" = env("HOST"),
+    },
+    {
+      "__path__" = "/custom/config/home-assistant.log.fault",
+      "instance" = env("INSTANCE_NAME"),
+      "component" = "homeassistant",
+      "hostname" = env("HOST"),
     },
   ]
 }
 
 loki.process "homeassistant" {
-  forward_to = [grafana_cloud.stack.receivers.logs]
+  forward_to = [loki.write.grafana_loki.receiver]
   stage.multiline {
     firstline = "^\\d{4}-\\d{2}-\\d{2} \\d{1,2}:\\d{2}:\\d{2}\\.\\d{3} "
     max_lines = 1000
@@ -56,11 +76,13 @@ loki.process "homeassistant" {
 }
 
 prometheus.scrape "homeassistant" {
-  forward_to = [grafana_cloud.stack.receivers.metrics]
+  forward_to = [prometheus.remote_write.mimir.receiver]
   targets = [
     {
       "__address__" = "supervisor:80",
       "instance" = env("INSTANCE_NAME"),
+      "hostname" = env("HOST"),
+      "component" = "homeassistant",
     },
   ]
   scrape_interval = env("SCRAPE_INTERVAL")

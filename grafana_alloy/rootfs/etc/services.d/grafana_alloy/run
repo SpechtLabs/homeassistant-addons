@@ -5,17 +5,18 @@
 # s6-overlay docs: https://github.com/just-containers/s6-overlay
 # ==============================================================================
 
-export STACK_NAME=$(bashio::config 'stack_name')
-export ACCESS_TOKEN=$(bashio::config 'access_token')
+export TENANT_ID=$(bashio::config 'tenant_id')
+export LOKI_ENDPOINT=$(bashio::config 'loki_endpoint')
+export MIMIR_ENDPOINT=$(bashio::config 'mimir_endpoint')
 export INSTANCE_NAME=$(bashio::config 'instance_name')
 export LOG_LEVEL=$(bashio::config 'log_level')
 export SCRAPE_INTERVAL=$(bashio::config 'scrape_interval')
 export ALLOY_DEPLOY_MODE=hass-addon-grafana-cloud
 
-CONFIG_FILE="/config.alloy"
-if bashio::fs.file_exists "/custom/config/config.alloy"; then
-  bashio::log.info "Using custom config.alloy"
-  CONFIG_FILE="/custom/config/config.alloy"
-fi
+#CONFIG_FILE="/config.alloy"
+#if bashio::fs.file_exists "/custom/config/config.alloy"; then
+#  bashio::log.info "Using custom config.alloy"
+#  CONFIG_FILE="/custom/config/config.alloy"
+#fi
 
 exec /usr/bin/grafana-alloy run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/config $CONFIG_FILE
