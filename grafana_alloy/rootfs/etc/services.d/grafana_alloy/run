@@ -13,7 +13,16 @@ export LOG_LEVEL=$(bashio::config 'log_level')
 export SCRAPE_INTERVAL=$(bashio::config 'scrape_interval')
 export ALLOY_DEPLOY_MODE=hass-addon-grafana-cloud
 
-#CONFIG_FILE="/config.alloy"
+bashio::log.info "TENANT_ID=$TENANT_ID"
+bashio::log.info "LOKI_ENDPOINT=$LOKI_ENDPOINT"
+bashio::log.info "MIMIR_ENDPOINT=$MIMIR_ENDPOINT"
+bashio::log.info "INSTANCE_NAME=$INSTANCE_NAME"
+bashio::log.info "LOG_LEVEL=$LOG_LEVEL"
+bashio::log.info "SCRAPE_INTERVAL=$SCRAPE_INTERVAL"
+bashio::log.info "ALLOY_DEPLOY_MODE=$ALLOY_DEPLOY_MODE"
+
+
+CONFIG_FILE="/config.alloy"
 #if bashio::fs.file_exists "/custom/config/config.alloy"; then
 #  bashio::log.info "Using custom config.alloy"
 #  CONFIG_FILE="/custom/config/config.alloy"
