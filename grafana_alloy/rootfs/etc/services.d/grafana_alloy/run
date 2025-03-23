@@ -18,4 +18,4 @@ if bashio::fs.file_exists "/custom/config/config.alloy"; then
   CONFIG_FILE="/custom/config/config.alloy"
 fi
 
-exec /usr/bin/grafana-alloy run --server.http.listen-addr=0.0.0.0:80 --storage.path=/config $CONFIG_FILE
+exec /usr/bin/grafana-alloy run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/config $CONFIG_FILE
