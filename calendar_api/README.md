@@ -1,4 +1,4 @@
-# Home Assistant Add-on: Meeting E-Paper Display (EPD) Server
+# Home Assistant Add-on: CalendarAPI
 
 ![Supports aarch64 Architecture][aarch64-shield]
 ![Supports amd64 Architecture][amd64-shield]
