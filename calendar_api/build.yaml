@@ -7,4 +7,5 @@ labels:
   org.opencontainers.image.source: "https://github.com/SpechtLabs/homeassistant-addons"
   org.opencontainers.image.licenses: "BSD 3-Clause "
   org.opencontainers.image.vendor: "Specht Labs"
-
+args:
+  CALENDAR_API_VERSION: "v0.1.2"
