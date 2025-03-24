@@ -3,7 +3,7 @@
 ![Supports aarch64 Architecture][aarch64-shield]
 ![Supports amd64 Architecture][amd64-shield]
 
-A lightweight, configurable server to serve iCal calendars over gRPC and REST for the E-Paper meeting-room display project.
+CalendarAPI is a service that parses iCal files and exposes their content via gRPC or a REST API. It uses Viper for configuration, which supports runtime reloads.
 
 ---
 
@@ -24,6 +24,7 @@ Built with flexibility and integration in mind, this service is ideal for displa
 - ✅ Designed for use with **E-Paper displays** in Home Assistant environments
 
 ---
+
 ## 🛠 Configuration
 
 ### 🖥️ Server Configuration
@@ -92,7 +93,6 @@ rules:
 
 These rules filter out non-essential events from the API output.
 
-
 #### 🃏 Wildcard Rule
 
 ```yaml
@@ -110,13 +110,8 @@ Acts as a catch-all to ensure unmatched events are still included.
 
 Once the add-on is running, the service exposes:
 
-* A REST API on the configured HTTP port
-* A gRPC server on the configured gRPC port
+- A REST API on the configured HTTP port
+- A gRPC server on the configured gRPC port
 
-[grafana]: https://grafana.com
-[grafana-cloud]: https://grafana.com/products/cloud/
-[grafana-alloy]: https://grafana.com/docs/alloy/latest/
-[integration]: https://grafana.com/solutions/home-assistant/monitor/
-[Prometheus integration]: https://www.home-assistant.io/integrations/prometheus/
 [aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
 [amd64-shield]: https://img.shields.io/badge/amd64-yes-green.svg

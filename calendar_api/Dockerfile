@@ -1,4 +1,4 @@
-FROM ghcr.io/cedi/ical-to-restapi:main
+FROM ghcr.io/SpechtLabs/CalendarAPI:v0.1.1
 
 # Build arguments
 ARG BUILD_ARCH
@@ -13,8 +13,9 @@ LABEL \
     io.hass.arch="${BUILD_ARCH}" \
     io.hass.type="addon" \
     io.hass.version=${BUILD_VERSION} \
-    maintainer="Cedi <github@cedi.dev>"
+    maintainer="Cedi <cedi@specht-labs.de>"
 
-ENTRYPOINT ["/bin/meetingepd", "serve"]
+ENTRYPOINT ["/bin/calendarapi", "serve"]
+
 EXPOSE     8099
 EXPOSE     50051
