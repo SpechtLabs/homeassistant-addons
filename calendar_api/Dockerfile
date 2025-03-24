@@ -1,4 +1,4 @@
-FROM ghcr.io/SpechtLabs/CalendarAPI:v0.1.1
+FROM ghcr.io/spechtlabs/calendarapi:v0.1.1
 
 # Build arguments
 ARG BUILD_ARCH
