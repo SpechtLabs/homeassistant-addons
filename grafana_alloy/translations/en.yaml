@@ -1,4 +1,18 @@
 configuration:
-  alloy_config:
-    name: Alloy Configuration
-    description: Your Grafana Alloy Configuration
+  tenant_id:
+    name: Tenant ID
+    description: The Loki and Mimir tenant where your metrics and logs will be stored
+  loki_endpoint:
+    name: Loki Endpoint
+    description: The endpoint URL of your Loki ingestion endpoint
+  mimir_endpoint:
+    name: Mimir Endpoint
+    description: The endpoint URL of your Mimir ingestion endpoint
+  instance_name:
+    name: Instance Name
+    description: An identifier for your Home Assistant instance, will be set as the instance tag on all logs and metrics
+  scrape_interval:
+    name: Scrape Interval
+    description: How often to send metrics to Grafana Cloud
+  log_level:
+    name: Log Level

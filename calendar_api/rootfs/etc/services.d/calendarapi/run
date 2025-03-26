@@ -5,4 +5,10 @@
 # s6-overlay docs: https://github.com/just-containers/s6-overlay
 # ==============================================================================
 
-exec /usr/bin/calendarapi run --server.http.listen-addr=0.0.0.0:8099 --storage.path=/config $CONFIG_FILE
+CONFIG_PATH=/data/options.json
+if bashio::fs.file_exists "/custom/config/calendarapi.yaml"; then
+    bashio::log.info "Using custom calendarapi.yaml configuration"
+    CONFIG_PATH="/custom/config/calendarapi.yaml"
+fi
+
+exec /usr/bin/calendarapi serve --config $CONFIG_PATH

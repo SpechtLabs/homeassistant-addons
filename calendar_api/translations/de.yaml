@@ -1,0 +1,10 @@
+configuration:
+  calendars:
+    name: Kalender
+    description: Die liste der ical Kalender die du überwachen willst
+  server:
+    name: Server Konfiguration
+    description: Die Server Konfiguration von CalendarAPI
+  rules:
+    name: Regeln
+    description: Die regel-liste die auf deine Kalender einträge angewendet wird
