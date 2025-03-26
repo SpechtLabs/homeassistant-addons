@@ -19,7 +19,6 @@ LABEL \
 RUN apk --update add libc6-compat && rm -rf /var/cache/apk/*
 
 RUN cd /tmp && \
-                                   https://github.com/SpechtLabs/CalendarAPI/releases/download/v0.1.3                 /CalendarAPI_0.1.3_linux           _arm64.tar.gz
     curl -sSLf -o calendarapi.tar.gz "https://github.com/SpechtLabs/CalendarAPI/releases/download/${CALENDAR_API_VERSION}/CalendarAPI_${CALENDAR_API_VERSION}_linux_${BUILD_ARCH//aarch64/arm64}.zip" && \
     tar -xvzf && mv calendarapi /usr/bin/calendarapi && \
     rm calendarapi.tar.gz
