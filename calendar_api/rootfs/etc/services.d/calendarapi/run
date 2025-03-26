@@ -1,0 +1,8 @@
+#!/usr/bin/with-contenv bashio
+
+# ==============================================================================
+# Start the alloy service
+# s6-overlay docs: https://github.com/just-containers/s6-overlay
+# ==============================================================================
+
+exec /usr/bin/calendarapi run --server.http.listen-addr=0.0.0.0:8099 --storage.path=/config $CONFIG_FILE
