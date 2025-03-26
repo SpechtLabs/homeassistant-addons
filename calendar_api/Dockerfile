@@ -1,7 +1,8 @@
-ARG CALENDAR_API_VERSION
-FROM ghcr.io/spechtlabs/calendarapi:$CALENDAR_API_VERSION
+ARG BUILD_FROM
 
-# Build arguments
+FROM $BUILD_FROM
+
+ARG CALENDAR_API_VERSION
 ARG BUILD_ARCH
 ARG BUILD_DESCRIPTION
 ARG BUILD_NAME
@@ -16,7 +17,16 @@ LABEL \
     io.hass.version=${BUILD_VERSION} \
     maintainer="Cedi <cedi@specht-labs.de>"
 
-ENTRYPOINT ["/bin/calendarapi", "serve"]
+RUN apk --update add libc6-compat && rm -rf /var/cache/apk/*
+
+RUN cd /tmp && \
+    STRIPPED_VERSION=${CALENDAR_API_VERSION#v} &&  \
+    curl -sSLf -o calendarapi.tar.gz "https://github.com/SpechtLabs/CalendarAPI/releases/download/${CALENDAR_API_VERSION}/CalendarAPI_${STRIPPED_VERSION}_linux_${BUILD_ARCH//aarch64/arm64}.tar.gz" && \
+    tar -xvzf calendarapi.tar.gz && mv calendarapi /usr/bin/calendarapi && \
+    rm calendarapi.tar.gz
+
+# Copy files for addon
+COPY rootfs /
 
 EXPOSE     8099
 EXPOSE     50051

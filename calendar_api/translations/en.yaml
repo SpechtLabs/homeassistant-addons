@@ -1,0 +1,10 @@
+configuration:
+  calendars:
+    name: Calendars
+    description: The list of ical calendars you want to monitor
+  server:
+    name: Server Configuration
+    description: The Server Configuration of your CalendarAPI Server
+  rules:
+    name: Rules
+    description: The list of rules to apply to your subscribed calendars

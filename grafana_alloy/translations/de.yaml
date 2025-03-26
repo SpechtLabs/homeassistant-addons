@@ -1,4 +1,18 @@
 configuration:
-  alloy_config:
-    name: Alloy Konfiguration
-    description: Deine Grafana Alloy Konfiguration
+  tenant_id:
+    name: Tenant ID
+    description: Die Loki and Mimir tenant ID in der die Metriken und Protokolle gespeichert werden
+  loki_endpoint:
+    name: Loki Endpoint
+    description: Die Endpunkt URL von deiner Loki Instanz die neue Protokolle akzeptiert
+  mimir_endpoint:
+    name: Mimir Endpoint
+    description: Die Endpunkt URL von deiner Mimir Instanz die neue Protokolle akzeptiert
+  instance_name:
+    name: Instance Name
+    description: Der name deiner Home Assistant instanz
+  scrape_interval:
+    name: Scrape Interval
+    description: Wie oft metriken zu Mimir geschickt werden sollen
+  log_level:
+    name: Log Level
