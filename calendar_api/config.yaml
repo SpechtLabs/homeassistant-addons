@@ -1,12 +1,12 @@
 name: "Home Assistant Add-on: Calendar API"
 description: "CalendarAPI is a service that parses iCal files and exposes their content via gRPC or a REST API."
-version: "0.1.5"
+version: "0.1.6"
 slug: "calendarapi"
 url: "https://github.com/SpechtLabs/CalendarAPI"
 codenotary: "cedi@specht-labs.de"
 startup: services
 image: "ghcr.io/spechtlabs/hass-addon-calendar-api-{arch}"
-
+init: false
 arch:
   - amd64
   - aarch64
