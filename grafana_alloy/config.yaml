@@ -1,6 +1,6 @@
 name: "Grafana Alloy"
 description: "Send metrics & logs to Grafana Cloud or your own Grafana observability stack"
-version: "0.1.0"
+version: "0.1.1"
 slug: "grafana_alloy"
 init: false
 arch:
