@@ -1,6 +1,6 @@
 name: "Grafana Alloy"
 description: "Send metrics & logs to Grafana Cloud or your own Grafana observability stack"
-version: "0.1.1"
+version: "0.1.2"
 slug: "grafana_alloy"
 init: false
 arch:
@@ -24,5 +24,7 @@ homeassistant_api: true
 map:
   - type: homeassistant_config
     path: /custom/config
-  - addon_config:rw
+    read_only: true
+  - type: addon_config
+    read_only: true
 image: "ghcr.io/spechtlabs/hass-addon-grafana-alloy-{arch}"
