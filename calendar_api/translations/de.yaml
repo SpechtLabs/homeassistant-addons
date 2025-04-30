@@ -1,4 +1,10 @@
 configuration:
+  otelExporterEndpoint:
+    name: Otel Exporter Endpoint
+    description: Der Endpoint für den Otel Exporter
+  otelExporterInsecure:
+    name: Otel Exporter Insecure
+    description: Ob der Otel Exporter unsicher ist
   calendars:
     name: Kalender
     description: Die liste der ical Kalender die du überwachen willst
