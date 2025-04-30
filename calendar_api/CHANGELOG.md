@@ -1,5 +1,9 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 0.2.0
+
+- Add configuration options for exporting opentelemetry traces
+
 ## 0.1.8
 
 - Bump CalendarAPI to v0.1.4

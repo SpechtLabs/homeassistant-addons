@@ -5,6 +5,9 @@
 # s6-overlay docs: https://github.com/just-containers/s6-overlay
 # ==============================================================================
 
+export OTEL_EXPORTER_OTLP_ENDPOINT=$(bashio::config 'otelExporterEndpoint')
+export OTEL_EXPORTER_OTLP_INSECURE=$(bashio::config 'otelExporterInsecure')
+
 CONFIG_PATH=/data/options.json
 if bashio::fs.file_exists "/custom/config/calendarapi.yaml"; then
     bashio::log.info "Using custom calendarapi.yaml configuration"
