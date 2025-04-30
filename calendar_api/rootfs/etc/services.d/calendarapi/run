@@ -5,6 +5,7 @@
 # s6-overlay docs: https://github.com/just-containers/s6-overlay
 # ==============================================================================
 
+export GIN_MODE=release
 export OTEL_EXPORTER_OTLP_ENDPOINT=$(bashio::config 'otelExporterEndpoint')
 export OTEL_EXPORTER_OTLP_INSECURE=$(bashio::config 'otelExporterInsecure')
 
