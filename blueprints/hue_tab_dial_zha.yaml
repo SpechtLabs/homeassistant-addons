@@ -18,15 +18,25 @@ blueprint:
     dim_scale:
       name: Diming Scale
       description:
-        Scale factor for the dimming. This value will be multiplied by
-        the value given from the dial. So lower number, more gradual dimming. Larger
+        Scale factor for the dimming. This value will control how much (in %)
+        the light will be dimmed. So lower number, more gradual dimming. Larger
         number, faster dimming.
-      default: 1.0
+      default: 10.0
+      selector:
+        number:
+          min: 1.0
+          max: 25.0
+          step: 1.0
+          mode: slider
+    transition_sec:
+      name: Transition Seconds
+      description: Time until reaching the new brightness setting
+      default: 0.5
       selector:
         number:
           min: 0.0
-          max: 5.0
-          step: 0.01
+          max: 2.0
+          step: 0.1
           mode: slider
     dimmer_light:
       name: Dimmer Light
@@ -203,7 +213,7 @@ actions:
           - service: light.turn_on
             target: !input dimmer_light
             data:
-              brightness_step_pct: "{{ step_size | multiply(dim_scale) }}"
+              brightness_step_pct: "{{ dim_scale) }}"
               transition: 1
       - conditions:
           - "{{ command == 'step_with_on_off' }}"
@@ -212,5 +222,5 @@ actions:
           - service: light.turn_on
             target: !input dimmer_light
             data:
-              brightness_step_pct: "{{ -step_size | multiply(dim_scale) }}"
+              brightness_step_pct: "{{ -dim_scale }}"
               transition: 1
