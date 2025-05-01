@@ -150,100 +150,52 @@ actions:
   - choose:
       - conditions:
           - "{{ command == 'button_1_short_release' }}"
-        sequence:
-          - choose: []
-            default: !input button_1_short
-        alias: Button 1 - Short press
+        sequence: !input button_1_short
       - conditions:
           - "{{ command == 'button_1_double_press' }}"
-        sequence:
-          - choose: []
-            default: !input button_1_double
-        alias: Button 1 - Double press
+        sequence: !input button_1_double
       - conditions:
           - "{{ command == 'button_1_hold' }}"
-        sequence:
-          - choose: []
-            default: !input button_1_long_hold
-        alias: Button 1 - Long press (hold)
+        sequence: !input button_1_long_hold
       - conditions:
           - "{{ command == 'button_1_hold' }}"
-        sequence:
-          - choose: []
-            default: !input button_1_long_release
-        alias: Button 1 - Long press (release)
+        sequence: !input button_1_long_release
       - conditions:
           - "{{ command == 'button_2_short_release' }}"
-        sequence:
-          - choose: []
-            default: !input button_2_short
-        alias: Button 2 - Short press
+        sequence: !input button_2_short
       - conditions:
           - "{{ command == 'button_2_double_press' }}"
-        sequence:
-          - choose: []
-            default: !input button_2_short
-        alias: Button 2 - Double press
+        sequence: !input button_2_short
       - conditions:
           - "{{ command == 'button_2_hold' }}"
-        sequence:
-          - choose: []
-            default: !input button_2_short
-        alias: Button 2 - Long press (hold)
+        sequence: !input button_2_short
       - conditions:
           - "{{ command == 'button_2_hold' }}"
-        sequence:
-          - choose: []
-            default: !input button_2_short
-        alias: Button 2 - Long press (release)
+        sequence: !input button_2_short
       - conditions:
           - "{{ command == 'button_3_short_release' }}"
-        sequence:
-          - choose: []
-            default: !input button_3_short
-        alias: Button 3 - Short press
+        sequence: !input button_3_short
       - conditions:
           - "{{ command == 'button_3_double_press' }}"
-        sequence:
-          - choose: []
-            default: !input button_3_short
-        alias: Button 3 - Double press
+        sequence: !input button_3_short
       - conditions:
           - "{{ command == 'button_3_hold' }}"
-        sequence:
-          - choose: []
-            default: !input button_3_short
-        alias: Button 3 - Long press (hold)
+        sequence: !input button_3_short
       - conditions:
           - "{{ command == 'button_3_hold' }}"
-        sequence:
-          - choose: []
-            default: !input button_3_short
-        alias: Button 3 - Long press (release)
+        sequence: !input button_3_short
       - conditions:
           - "{{ command == 'button_4_short_release' }}"
-        sequence:
-          - choose: []
-            default: !input button_4_short
-        alias: Button 4 - Short press
+        sequence: !input button_4_short
       - conditions:
           - "{{ command == 'button_4_double_press' }}"
-        sequence:
-          - choose: []
-            default: !input button_4_short
-        alias: Button 4 - Double press
+        sequence: !input button_4_short
       - conditions:
           - "{{ command == 'button_4_hold' }}"
-        sequence:
-          - choose: []
-            default: !input button_4_short
-        alias: Button 4 - Long press (hold)
+        sequence: !input button_4_short
       - conditions:
           - "{{ command == 'button_4_hold' }}"
-        sequence:
-          - choose: []
-            default: !input button_4_short
-        alias: Button 4 - Long press (release)
+        sequence: !input button_4_short
       - conditions:
           - "{{ command == 'step_with_on_off' }}"
           - "{{ step_mode == 'StepMode.Up' }}"
@@ -253,7 +205,6 @@ actions:
             data:
               brightness_step_pct: "{{ step_size | multiply(dim_scale) }}"
               transition: 1
-        alias: Dim Up
       - conditions:
           - "{{ command == 'step_with_on_off' }}"
           - "{{ step_mode == 'StepMode.Down' }}"
@@ -263,4 +214,3 @@ actions:
             data:
               brightness_step_pct: "{{ -step_size | multiply(dim_scale) }}"
               transition: 1
-        alias: Dim Down
