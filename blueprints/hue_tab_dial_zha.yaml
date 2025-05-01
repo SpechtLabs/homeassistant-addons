@@ -1,6 +1,9 @@
 blueprint:
   name: Philips Tap Dial Switch (ZHA)
-  description: "Control lights with a Philips Hue Tap Switch. Use the four buttons to control up to four light(s) with an on/off toggle. The dial can be used to dim the most recently used light."
+  description:
+    Control lights with a Philips Hue Tap Switch. Use the four buttons
+    to control up to four light(s) with an on/off toggle. The dial can be used to
+    dim the most recently used light.
   source_url: https://github.com/SpechtLabs/homeassistant-addons/blob/main/blueprints/hue_tab_dial_zha.yaml
   domain: automation
   input:
@@ -11,21 +14,27 @@ blueprint:
           integration: zha
           manufacturer: Signify Netherlands B.V.
           model: RDM002
+          multiple: false
     dim_scale:
       name: Diming Scale
-      description: Scale factor for the dimming. This value will be multiplied by the value given from the dial. So lower number, more gradual dimming. Larger number, faster dimming.
+      description:
+        Scale factor for the dimming. This value will be multiplied by
+        the value given from the dial. So lower number, more gradual dimming. Larger
+        number, faster dimming.
       default: 1.0
       selector:
         number:
           min: 0.0
           max: 5.0
           step: 0.01
+          mode: slider
     dimmer_light:
       name: Dimmer Light
       description: The light(s) to control with the dimmer dial.
       selector:
         target:
-          entity: {}
+          entity:
+            - {}
     button_1_short:
       name: Button 1 - single click
       description: Action to run on single click on Button 1
@@ -123,7 +132,7 @@ blueprint:
       selector:
         action: {}
 variables:
-  dim_scale: !input "dim_scale"
+  dim_scale: !input dim_scale
 mode: restart
 triggers:
   - trigger: event
@@ -140,121 +149,117 @@ actions:
       step_size: "{{ trigger.event.data.params.step_size }}"
   - choose:
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'button_1_short_release' }}"
+          - "{{ command == 'button_1_short_release' }}"
         sequence:
-          - !input "button_1_short"
+          - choose: []
+            default: !input button_1_short
         alias: Button 1 - Short press
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'button_1_double_press' }}"
+          - "{{ command == 'button_1_double_press' }}"
         sequence:
-          - !input "button_1_double"
+          - choose: []
+            default: !input button_1_double
         alias: Button 1 - Double press
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'button_1_hold' }}"
+          - "{{ command == 'button_1_hold' }}"
         sequence:
-          - !input "button_1_long_hold"
+          - choose: []
+            default: !input button_1_long_hold
         alias: Button 1 - Long press (hold)
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'button_1_hold' }}"
+          - "{{ command == 'button_1_hold' }}"
         sequence:
-          - !input "button_1_long_release"
+          - choose: []
+            default: !input button_1_long_release
         alias: Button 1 - Long press (release)
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'button_2_short_release' }}"
+          - "{{ command == 'button_2_short_release' }}"
         sequence:
-          - !input "button_2_short"
+          - choose: []
+            default: !input button_2_short
         alias: Button 2 - Short press
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'button_2_double_press' }}"
+          - "{{ command == 'button_2_double_press' }}"
         sequence:
-          - !input "button_2_short"
+          - choose: []
+            default: !input button_2_short
         alias: Button 2 - Double press
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'button_2_hold' }}"
+          - "{{ command == 'button_2_hold' }}"
         sequence:
-          - !input "button_2_short"
+          - choose: []
+            default: !input button_2_short
         alias: Button 2 - Long press (hold)
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'button_2_hold' }}"
+          - "{{ command == 'button_2_hold' }}"
         sequence:
-          - !input "button_2_short"
+          - choose: []
+            default: !input button_2_short
         alias: Button 2 - Long press (release)
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'button_3_short_release' }}"
+          - "{{ command == 'button_3_short_release' }}"
         sequence:
-          - !input "button_3_short"
+          - choose: []
+            default: !input button_3_short
         alias: Button 3 - Short press
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'button_3_double_press' }}"
+          - "{{ command == 'button_3_double_press' }}"
         sequence:
-          - !input "button_3_short"
+          - choose: []
+            default: !input button_3_short
         alias: Button 3 - Double press
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'button_3_hold' }}"
+          - "{{ command == 'button_3_hold' }}"
         sequence:
-          - !input "button_3_short"
+          - choose: []
+            default: !input button_3_short
         alias: Button 3 - Long press (hold)
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'button_3_hold' }}"
+          - "{{ command == 'button_3_hold' }}"
         sequence:
-          - !input "button_3_short"
+          - choose: []
+            default: !input button_3_short
         alias: Button 3 - Long press (release)
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'button_4_short_release' }}"
+          - "{{ command == 'button_4_short_release' }}"
         sequence:
-          - !input "button_4_short"
+          - choose: []
+            default: !input button_4_short
         alias: Button 4 - Short press
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'button_4_double_press' }}"
+          - "{{ command == 'button_4_double_press' }}"
         sequence:
-          - !input "button_4_short"
+          - choose: []
+            default: !input button_4_short
         alias: Button 4 - Double press
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'button_4_hold' }}"
+          - "{{ command == 'button_4_hold' }}"
         sequence:
-          - !input "button_4_short"
+          - choose: []
+            default: !input button_4_short
         alias: Button 4 - Long press (hold)
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'button_4_hold' }}"
+          - "{{ command == 'button_4_hold' }}"
         sequence:
-          - !input "button_4_short"
+          - choose: []
+            default: !input button_4_short
         alias: Button 4 - Long press (release)
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'step_with_on_off' }}"
-          - condition: template
-            value_template: "{{ step_mode == 'StepMode.Up' }}"
+          - "{{ command == 'step_with_on_off' }}"
+          - "{{ step_mode == 'StepMode.Up' }}"
         sequence:
           - service: light.turn_on
-            target: !input "dimmer_light"
+            target: !input dimmer_light
             data:
               brightness_step_pct: "{{ step_size | multiply(dim_scale) }}"
               transition: 1
         alias: Dim Up
       - conditions:
-          - condition: template
-            value_template: "{{ command == 'step_with_on_off' }}"
-          - condition: template
-            value_template: "{{ step_mode == 'StepMode.Down' }}"
+          - "{{ command == 'step_with_on_off' }}"
+          - "{{ step_mode == 'StepMode.Down' }}"
         sequence:
           - service: light.turn_on
-            target: !input "dimmer_light"
+            target: !input dimmer_light
             data:
               brightness_step_pct: "{{ -step_size | multiply(dim_scale) }}"
               transition: 1
