@@ -148,7 +148,7 @@ triggers:
   - trigger: event
     event_type: zha_event
     event_data:
-      device_id: 3588070feb3a8ab87fcd834b52ef01b0
+      device_id: !input remote
 actions:
   - variables:
       command: "{{ trigger.event.data.command }}"
