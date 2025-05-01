@@ -18,8 +18,8 @@ blueprint:
     dim_scale:
       name: Diming Scale
       description:
-        Scale factor for the dimming. This value will control how much (in %)
-        the light will be dimmed. So lower number, more gradual dimming. Larger
+        Scale factor for the dimming. This value will control how much
+        (in %) the light will be dimmed. So lower number, more gradual dimming. Larger
         number, faster dimming.
       default: 10.0
       selector:
@@ -213,7 +213,7 @@ actions:
           - service: light.turn_on
             target: !input dimmer_light
             data:
-              brightness_step_pct: "{{ dim_scale) }}"
+              brightness_step_pct: "{{ dim_scale }}"
               transition: 1
       - conditions:
           - "{{ command == 'step_with_on_off' }}"
