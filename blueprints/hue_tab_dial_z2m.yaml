@@ -184,7 +184,7 @@ actions:
 
       # Dimmer Dial
       - conditions:
-          - "{{ command == 'dial_rotate_left_step' }}"
+          - "{{ command == 'dial_rotate_left_slow' }}"
         sequence:
           - service: light.turn_on
             target: !input dimmer_light
@@ -193,7 +193,7 @@ actions:
               transition: 1
 
       - conditions:
-          - "{{ command == 'dial_rotate_right_step' }}"
+          - "{{ command == 'dial_rotate_right_slow' }}"
         sequence:
           - service: light.turn_on
             target: !input dimmer_light
