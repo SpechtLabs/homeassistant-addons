@@ -1,20 +1,20 @@
 blueprint:
-  name: Philips Tap Dial Switch (ZHA)
+  name: Philips Tap Dial Switch (Z2M)
   description:
     Control lights with a Philips Hue Tap Switch. Use the four buttons
     to control up to four light(s) with an on/off toggle. The dial can be used to
     dim the most recently used light.
-  source_url: https://github.com/SpechtLabs/homeassistant-addons/blob/main/blueprints/hue_tab_dial_zha.yaml
+  source_url: https://github.com/SpechtLabs/homeassistant-addons/blob/main/blueprints/hue_tab_dial_z2m.yaml
   domain: automation
   input:
     remote:
-      name: Philips Hue Tap Switch
-      selector:
-        device:
-          integration: zha
-          manufacturer: Signify Netherlands B.V.
-          model: RDM002
-          multiple: false
+      name: (Zigbee2MQTT) TapDial Remote Name
+      description: The name of the TapDial Remote as defined in z2m (e.g. Livingroom TapDial)
+      default: ""
+    base_topic:
+      name: (Zigbee2MQTT) Base mqtt topic
+      description: The base topic as configured in z2m
+      default: zigbee2mqtt
     dim_scale:
       name: Diming Scale
       description:
@@ -51,12 +51,7 @@ blueprint:
       default: []
       selector:
         action: {}
-    button_1_double:
-      name: Button 1 - double click
-      description: Action to run on double click on Button 1
-      default: []
-      selector:
-        action: {}
+
     button_1_long_hold:
       name: Button 1 - long press (hold)
       description: Action to run on holding down on Button 1
@@ -72,12 +67,6 @@ blueprint:
     button_2_short:
       name: Button 2 - single click
       description: Action to run on single click on Button 2
-      default: []
-      selector:
-        action: {}
-    button_2_double:
-      name: Button 2 - double click
-      description: Action to run on double click on Button 2
       default: []
       selector:
         action: {}
@@ -99,12 +88,6 @@ blueprint:
       default: []
       selector:
         action: {}
-    button_3_double:
-      name: Button 3 - double click
-      description: Action to run on double click on Button 3
-      default: []
-      selector:
-        action: {}
     button_3_long_hold:
       name: Button 3 - long press (hold)
       description: Action to run on holding down on Button 3
@@ -123,12 +106,6 @@ blueprint:
       default: []
       selector:
         action: {}
-    button_4_double:
-      name: Button 4 - double click
-      description: Action to run on double click on Button 4
-      default: []
-      selector:
-        action: {}
     button_4_long_hold:
       name: Button 4 - long press (hold)
       description: Action to run on holding down on Button 4
@@ -141,86 +118,103 @@ blueprint:
       default: []
       selector:
         action: {}
+
 variables:
   dim_scale: !input dim_scale
+  remote: !input remote
+
+trigger_variables:
+  base_topic: !input base_topic
+  remote: !input remote
+
 mode: restart
-triggers:
-  - trigger: event
-    event_type: zha_event
-    event_data:
-      device_id: !input remote
+
+trigger:
+  - platform: mqtt
+    topic: "{{ base_topic ~ '/' ~ remote }}"
+
 actions:
   - variables:
-      command: "{{ trigger.event.data.command }}"
-      args: "{{ trigger.event.data.args }}"
-      params: "{{ trigger.event.data.params }}"
-      scene: "{{ trigger.event.data.params.scene_id }}"
-      step_mode: "{{ trigger.event.data.params.step_mode }}"
-      step_size: "{{ trigger.event.data.params.step_size }}"
+      command: "{{ trigger.payload_json.action }}"
+
   - choose:
+      # Button 1
       - conditions:
-          - "{{ command == 'button_1_short_release' }}"
+          - "{{ command == 'button_1_press_release' }}"
         sequence: !input button_1_short
-      - conditions:
-          - "{{ command == 'button_1_double_press' }}"
-        sequence: !input button_1_double
       - conditions:
           - "{{ command == 'button_1_hold' }}"
         sequence: !input button_1_long_hold
       - conditions:
           - "{{ command == 'button_1_hold_release' }}"
         sequence: !input button_1_long_release
+
+      # Button 2
       - conditions:
-          - "{{ command == 'button_2_short_release' }}"
-        sequence: !input button_2_short
-      - conditions:
-          - "{{ command == 'button_2_double_press' }}"
+          - "{{ command == 'button_2_press_release' }}"
         sequence: !input button_2_short
       - conditions:
           - "{{ command == 'button_2_hold' }}"
-        sequence: !input button_2_short
+        sequence: !input button_2_long_hold
       - conditions:
           - "{{ command == 'button_2_hold_release' }}"
-        sequence: !input button_2_short
+        sequence: !input button_2_long_release
+
+      # Button 3
       - conditions:
-          - "{{ command == 'button_3_short_release' }}"
-        sequence: !input button_3_short
-      - conditions:
-          - "{{ command == 'button_3_double_press' }}"
+          - "{{ command == 'button_3_press_release' }}"
         sequence: !input button_3_short
       - conditions:
           - "{{ command == 'button_3_hold' }}"
-        sequence: !input button_3_short
+        sequence: !input button_3_long_hold
       - conditions:
           - "{{ command == 'button_3_hold_release' }}"
-        sequence: !input button_3_short
+        sequence: !input button_3_long_release
+
+      # Button 4
       - conditions:
-          - "{{ command == 'button_4_short_release' }}"
-        sequence: !input button_4_short
-      - conditions:
-          - "{{ command == 'button_4_double_press' }}"
+          - "{{ command == 'button_4_press_release' }}"
         sequence: !input button_4_short
       - conditions:
           - "{{ command == 'button_4_hold' }}"
-        sequence: !input button_4_short
+        sequence: !input button_4_long_hold
       - conditions:
           - "{{ command == 'button_4_hold_release' }}"
-        sequence: !input button_4_short
+        sequence: !input button_4_long_release
+
+      # Dimmer Dial
       - conditions:
-          - "{{ command == 'step_with_on_off' }}"
-          - "{{ step_mode == 'StepMode.Up' }}"
+          - "{{ command == 'dial_rotate_left_step' }}"
+        sequence:
+          - service: light.turn_on
+            target: !input dimmer_light
+            data:
+              brightness_step_pct: "{{ -dim_scale }}"
+              transition: 1
+
+      - conditions:
+          - "{{ command == 'dial_rotate_right_step' }}"
         sequence:
           - service: light.turn_on
             target: !input dimmer_light
             data:
               brightness_step_pct: "{{ dim_scale }}"
               transition: 1
+
       - conditions:
-          - "{{ command == 'step_with_on_off' }}"
-          - "{{ step_mode == 'StepMode.Down' }}"
+          - "{{ command == 'dial_rotate_left_fast' }}"
         sequence:
           - service: light.turn_on
             target: !input dimmer_light
             data:
-              brightness_step_pct: "{{ -dim_scale }}"
+              brightness_step_pct: "{{ -(dim_scale * 2) }}"
+              transition: 1
+
+      - conditions:
+          - "{{ command == 'dial_rotate_right_fast' }}"
+        sequence:
+          - service: light.turn_on
+            target: !input dimmer_light
+            data:
+              brightness_step_pct: "{{ (dim_scale * 2) }}"
               transition: 1
