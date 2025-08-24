@@ -8,4 +8,4 @@ labels:
   org.opencontainers.image.licenses: "BSD 3-Clause "
   org.opencontainers.image.vendor: "Specht Labs"
 args:
-  CALENDAR_API_VERSION: "v0.1.4"
+  CALENDAR_API_VERSION: "v0.1.7"

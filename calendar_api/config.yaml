@@ -1,6 +1,6 @@
 name: "Home Assistant Add-on: Calendar API"
 description: "CalendarAPI is a service that parses iCal files and exposes their content via gRPC or a REST API."
-version: "0.2.0"
+version: "0.3.0"
 slug: "calendarapi"
 url: "https://github.com/SpechtLabs/CalendarAPI"
 codenotary: "cedi@specht-labs.de"
@@ -17,6 +17,7 @@ map:
 ports:
   8099/tcp: 8099
   50051/tcp: 50051
+
 ports_description:
   8099/tcp: Port used by the REST API
   50051/tcp: Port used by the gRPC API
@@ -37,6 +38,9 @@ schema:
       contains:
         - str
       skip: bool?
+  otel:
+    endpoint: str?
+    insecure: bool?
 
 options:
   otelExporterEndpoint: ""
@@ -64,3 +68,6 @@ options:
       important: false
       contains:
         - "*"
+  otel:
+    endpoint: ""
+    insecure: true
