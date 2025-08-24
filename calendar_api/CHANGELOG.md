@@ -1,5 +1,11 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 0.3.0
+
+- add OpenTelemetry configuration options for better observability
+- remove unused environment variable exports in run script to clean up code
+- update CALENDAR_API_VERSION to v0.1.7 and version to 0.3.0 for consistency
+
 ## 0.2.0
 
 - Add configuration options for exporting opentelemetry traces
