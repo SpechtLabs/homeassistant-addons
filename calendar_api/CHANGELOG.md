@@ -1,5 +1,9 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 0.3.2
+
+- Bump CalendarAPI to v0.1.9 to fix random bug:
+
 ## 0.3.1
 
 - Bump CalendarAPI to v0.1.8 to add more safety and prevent panics from gocal
