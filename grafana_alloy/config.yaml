@@ -1,25 +1,35 @@
 name: "Grafana Alloy"
-description: "Send metrics & logs to Grafana Cloud or your own Grafana observability stack"
-version: "0.1.3"
+description: "Send metrics, logs & traces to Grafana Cloud or your own Grafana observability stack"
+version: "0.2.0"
 slug: "grafana_alloy"
 init: false
 arch:
   - amd64
   - aarch64
 options:
-  tenant_id: null
-  loki_endpoint: null
-  mimir_endpoint: null
   instance_name: homeassistant
   scrape_interval: 60s
   log_level: info
 schema:
-  tenant_id: str
-  loki_endpoint: str
-  mimir_endpoint: str
+  loki_endpoint: str?
+  loki_username: str?
+  loki_password: password?
+  mimir_endpoint: str?
+  mimir_username: str?
+  mimir_password: password?
+  tempo_endpoint: str?
+  tempo_username: str?
+  tempo_password: password?
+  tenant_id: str?
   instance_name: str?
   scrape_interval: str?
   log_level: list(debug|info|warn|error)
+ports:
+  4317/tcp: null
+  4318/tcp: null
+ports_description:
+  4317/tcp: "OTLP/gRPC traces receiver (only used when tempo_endpoint is set)"
+  4318/tcp: "OTLP/HTTP traces receiver (only used when tempo_endpoint is set)"
 homeassistant_api: true
 map:
   - type: homeassistant_config

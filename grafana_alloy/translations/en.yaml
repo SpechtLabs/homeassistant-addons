@@ -1,18 +1,40 @@
 configuration:
-  tenant_id:
-    name: Tenant ID
-    description: The Loki and Mimir tenant where your metrics and logs will be stored
   loki_endpoint:
     name: Loki Endpoint
-    description: The endpoint URL of your Loki ingestion endpoint
+    description: Loki push URL (e.g. https://loki.example.net/loki/api/v1/push). Leave empty to disable log shipping.
+  loki_username:
+    name: Loki Username
+    description: Basic-auth username for Loki. For Grafana Cloud this is your Loki user ID. Leave empty for no auth.
+  loki_password:
+    name: Loki Password / Token
+    description: Basic-auth password for Loki. For Grafana Cloud paste your Access Policy token here.
   mimir_endpoint:
     name: Mimir Endpoint
-    description: The endpoint URL of your Mimir ingestion endpoint
+    description: Prometheus remote-write URL (e.g. https://mimir.example.net/api/v1/push). Leave empty to disable metrics.
+  mimir_username:
+    name: Mimir Username
+    description: Basic-auth username for Mimir. For Grafana Cloud this is your Prometheus/Metrics user ID. Leave empty for no auth.
+  mimir_password:
+    name: Mimir Password / Token
+    description: Basic-auth password for Mimir. For Grafana Cloud paste your Access Policy token here.
+  tempo_endpoint:
+    name: Tempo Endpoint
+    description: OTLP/HTTP base URL for traces (e.g. https://tempo.example.net). The /v1/traces path is appended automatically. Leave empty to disable traces.
+  tempo_username:
+    name: Tempo Username
+    description: Basic-auth username for Tempo. For Grafana Cloud this is your Traces user ID. Leave empty for no auth.
+  tempo_password:
+    name: Tempo Password / Token
+    description: Basic-auth password for Tempo. For Grafana Cloud paste your Access Policy token here.
+  tenant_id:
+    name: Tenant ID
+    description: Optional multi-tenant ID, sent as Loki tenant_id and the X-Scope-OrgID header to Mimir. Leave empty if your backend injects tenancy itself (e.g. Grafana Cloud, or a gateway that sets the header).
   instance_name:
     name: Instance Name
-    description: An identifier for your Home Assistant instance, will be set as the instance tag on all logs and metrics
+    description: Identifier for this Home Assistant instance, set as the instance label on all logs and metrics.
   scrape_interval:
     name: Scrape Interval
-    description: How often to send metrics to Grafana Cloud
+    description: How often to scrape and send metrics (e.g. 60s).
   log_level:
     name: Log Level
+    description: Verbosity of Alloy's own logs.

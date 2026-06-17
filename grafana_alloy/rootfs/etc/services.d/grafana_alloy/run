@@ -1,31 +1,189 @@
 #!/usr/bin/with-contenv bashio
-
 # ==============================================================================
-# Start the alloy service
+# Start the Grafana Alloy service.
+#
+# This script generates an Alloy config from the add-on options, wiring up only
+# the signals (logs/metrics/traces) whose endpoint is configured. A user-supplied
+# config at /custom/config/config.alloy (the Home Assistant /config directory)
+# overrides generation entirely.
+#
 # s6-overlay docs: https://github.com/just-containers/s6-overlay
 # ==============================================================================
 
-export TENANT_ID=$(bashio::config 'tenant_id')
-export LOKI_ENDPOINT=$(bashio::config 'loki_endpoint')
-export MIMIR_ENDPOINT=$(bashio::config 'mimir_endpoint')
-export INSTANCE_NAME=$(bashio::config 'instance_name')
-export LOG_LEVEL=$(bashio::config 'log_level')
-export SCRAPE_INTERVAL=$(bashio::config 'scrape_interval')
-export ALLOY_DEPLOY_MODE=hass-addon-grafana-cloud
+readonly LISTEN_PORT="8099"
+readonly GENERATED_CONFIG="/config/alloy.generated.alloy"
+readonly CUSTOM_CONFIG="/custom/config/config.alloy"
 
-bashio::log.info "TENANT_ID=$TENANT_ID"
-bashio::log.info "LOKI_ENDPOINT=$LOKI_ENDPOINT"
-bashio::log.info "MIMIR_ENDPOINT=$MIMIR_ENDPOINT"
-bashio::log.info "INSTANCE_NAME=$INSTANCE_NAME"
-bashio::log.info "LOG_LEVEL=$LOG_LEVEL"
-bashio::log.info "SCRAPE_INTERVAL=$SCRAPE_INTERVAL"
-bashio::log.info "ALLOY_DEPLOY_MODE=$ALLOY_DEPLOY_MODE"
-
-
-CONFIG_FILE="/config.alloy"
-if bashio::fs.file_exists "/custom/config/config.alloy"; then
-  bashio::log.info "Using custom config.alloy"
-  CONFIG_FILE="/custom/config/config.alloy"
+# ------------------------------------------------------------------------------
+# Custom config escape hatch: use the user's file verbatim if present.
+# ------------------------------------------------------------------------------
+if bashio::fs.file_exists "${CUSTOM_CONFIG}"; then
+  bashio::log.info "Custom Alloy config found at ${CUSTOM_CONFIG}; using it verbatim."
+  exec /usr/bin/grafana-alloy run \
+    --server.http.listen-addr="0.0.0.0:${LISTEN_PORT}" \
+    --storage.path=/config \
+    "${CUSTOM_CONFIG}"
 fi
 
-exec /usr/bin/grafana-alloy run --server.http.listen-addr=0.0.0.0:8099 --storage.path=/config $CONFIG_FILE
+# ------------------------------------------------------------------------------
+# Read options.
+# ------------------------------------------------------------------------------
+INSTANCE_NAME="$(bashio::config 'instance_name' 'homeassistant')"
+SCRAPE_INTERVAL="$(bashio::config 'scrape_interval' '60s')"
+LOG_LEVEL="$(bashio::config 'log_level' 'info')"
+HOST_LABEL="$(hostname)"
+
+bashio::config.has_value 'loki_endpoint'  && LOKI_ENDPOINT="$(bashio::config 'loki_endpoint')"   || LOKI_ENDPOINT=""
+bashio::config.has_value 'mimir_endpoint' && MIMIR_ENDPOINT="$(bashio::config 'mimir_endpoint')" || MIMIR_ENDPOINT=""
+bashio::config.has_value 'tempo_endpoint' && TEMPO_ENDPOINT="$(bashio::config 'tempo_endpoint')" || TEMPO_ENDPOINT=""
+
+bashio::config.has_value 'tenant_id' && TENANT_ID="$(bashio::config 'tenant_id')" || TENANT_ID=""
+
+bashio::config.has_value 'loki_username'  && LOKI_USER="$(bashio::config 'loki_username')"   || LOKI_USER=""
+bashio::config.has_value 'loki_password'  && LOKI_PASS="$(bashio::config 'loki_password')"   || LOKI_PASS=""
+bashio::config.has_value 'mimir_username' && MIMIR_USER="$(bashio::config 'mimir_username')" || MIMIR_USER=""
+bashio::config.has_value 'mimir_password' && MIMIR_PASS="$(bashio::config 'mimir_password')" || MIMIR_PASS=""
+bashio::config.has_value 'tempo_username' && TEMPO_USER="$(bashio::config 'tempo_username')" || TEMPO_USER=""
+bashio::config.has_value 'tempo_password' && TEMPO_PASS="$(bashio::config 'tempo_password')" || TEMPO_PASS=""
+
+if [[ -z "${LOKI_ENDPOINT}" && -z "${MIMIR_ENDPOINT}" && -z "${TEMPO_ENDPOINT}" ]]; then
+  bashio::exit.nok "Configure at least one of loki_endpoint, mimir_endpoint or tempo_endpoint (or provide ${CUSTOM_CONFIG})."
+fi
+
+bashio::log.info "instance_name=${INSTANCE_NAME} scrape_interval=${SCRAPE_INTERVAL} log_level=${LOG_LEVEL}"
+bashio::log.info "logs=$([ -n "${LOKI_ENDPOINT}" ] && echo on || echo off) metrics=$([ -n "${MIMIR_ENDPOINT}" ] && echo on || echo off) traces=$([ -n "${TEMPO_ENDPOINT}" ] && echo on || echo off)"
+[ -n "${TENANT_ID}" ] && bashio::log.info "tenant_id=${TENANT_ID} (sent to backends)" || bashio::log.info "tenant_id unset (relying on backend/server-side injection)"
+
+# ------------------------------------------------------------------------------
+# Generate config.
+# ------------------------------------------------------------------------------
+emit() { printf '%s\n' "$1" >> "${GENERATED_CONFIG}"; }
+: > "${GENERATED_CONFIG}"
+
+# Alloy's own logs -> Loki when logs are enabled, otherwise discard.
+if [[ -n "${LOKI_ENDPOINT}" ]]; then
+  LOGGING_SINK="loki.process.alloy.receiver"
+else
+  LOGGING_SINK=""
+fi
+emit "logging {"
+emit "  level    = \"${LOG_LEVEL}\""
+emit "  format   = \"logfmt\""
+emit "  write_to = [${LOGGING_SINK}]"
+emit "}"
+emit ""
+
+# ---- Logs (Loki) -------------------------------------------------------------
+if [[ -n "${LOKI_ENDPOINT}" ]]; then
+  emit "loki.write \"grafana_loki\" {"
+  emit "  endpoint {"
+  emit "    url = \"${LOKI_ENDPOINT}\""
+  [[ -n "${TENANT_ID}" ]] && emit "    tenant_id = \"${TENANT_ID}\""
+  if [[ -n "${LOKI_USER}" && -n "${LOKI_PASS}" ]]; then
+    emit "    basic_auth {"
+    emit "      username = \"${LOKI_USER}\""
+    emit "      password = \"${LOKI_PASS}\""
+    emit "    }"
+  fi
+  emit "  }"
+  emit "}"
+  emit ""
+  emit "loki.process \"alloy\" {"
+  emit "  forward_to = [loki.write.grafana_loki.receiver]"
+  emit "  stage.static_labels {"
+  emit "    values = {"
+  emit "      instance  = \"${INSTANCE_NAME}\","
+  emit "      hostname  = \"${HOST_LABEL}\","
+  emit "      component = \"homeassistant\","
+  emit "    }"
+  emit "  }"
+  emit "}"
+  emit ""
+  emit "loki.source.file \"homeassistant\" {"
+  emit "  forward_to = [loki.process.homeassistant.receiver]"
+  emit "  targets = ["
+  emit "    { \"__path__\" = \"/custom/config/home-assistant.log\",       \"instance\" = \"${INSTANCE_NAME}\", \"component\" = \"homeassistant\", \"hostname\" = \"${HOST_LABEL}\" },"
+  emit "    { \"__path__\" = \"/custom/config/home-assistant.log.fault\", \"instance\" = \"${INSTANCE_NAME}\", \"component\" = \"homeassistant\", \"hostname\" = \"${HOST_LABEL}\" },"
+  emit "  ]"
+  emit "}"
+  emit ""
+  emit "loki.process \"homeassistant\" {"
+  emit "  forward_to = [loki.write.grafana_loki.receiver]"
+  emit "  stage.multiline {"
+  emit '    firstline = "^\\d{4}-\\d{2}-\\d{2} \\d{1,2}:\\d{2}:\\d{2}\\.\\d{3} "'
+  emit "    max_lines = 1000"
+  emit "  }"
+  emit "}"
+  emit ""
+fi
+
+# ---- Metrics (Mimir/Prometheus) ----------------------------------------------
+if [[ -n "${MIMIR_ENDPOINT}" ]]; then
+  emit "prometheus.remote_write \"mimir\" {"
+  emit "  endpoint {"
+  emit "    url = \"${MIMIR_ENDPOINT}\""
+  [[ -n "${TENANT_ID}" ]] && emit "    headers = { \"X-Scope-OrgID\" = \"${TENANT_ID}\" }"
+  if [[ -n "${MIMIR_USER}" && -n "${MIMIR_PASS}" ]]; then
+    emit "    basic_auth {"
+    emit "      username = \"${MIMIR_USER}\""
+    emit "      password = \"${MIMIR_PASS}\""
+    emit "    }"
+  fi
+  emit "  }"
+  emit "}"
+  emit ""
+  emit "prometheus.scrape \"alloy\" {"
+  emit "  forward_to      = [prometheus.remote_write.mimir.receiver]"
+  emit "  scrape_interval = \"${SCRAPE_INTERVAL}\""
+  emit "  targets = ["
+  emit "    { \"__address__\" = \"127.0.0.1:${LISTEN_PORT}\", \"instance\" = \"${INSTANCE_NAME}\" },"
+  emit "  ]"
+  emit "}"
+  emit ""
+  emit "prometheus.scrape \"homeassistant\" {"
+  emit "  forward_to      = [prometheus.remote_write.mimir.receiver]"
+  emit "  scrape_interval = \"${SCRAPE_INTERVAL}\""
+  emit "  metrics_path    = \"/core/api/prometheus\""
+  emit "  scheme          = \"http\""
+  emit "  bearer_token    = env(\"SUPERVISOR_TOKEN\")"
+  emit "  targets = ["
+  emit "    { \"__address__\" = \"supervisor:80\", \"instance\" = \"${INSTANCE_NAME}\", \"hostname\" = \"${HOST_LABEL}\", \"component\" = \"homeassistant\" },"
+  emit "  ]"
+  emit "}"
+  emit ""
+fi
+
+# ---- Traces (Tempo, OTLP) ----------------------------------------------------
+if [[ -n "${TEMPO_ENDPOINT}" ]]; then
+  TEMPO_AUTH_REF=""
+  if [[ -n "${TEMPO_USER}" && -n "${TEMPO_PASS}" ]]; then
+    emit "otelcol.auth.basic \"tempo\" {"
+    emit "  username = \"${TEMPO_USER}\""
+    emit "  password = \"${TEMPO_PASS}\""
+    emit "}"
+    emit ""
+    TEMPO_AUTH_REF="otelcol.auth.basic.tempo.handler"
+  fi
+  emit "otelcol.exporter.otlphttp \"tempo\" {"
+  emit "  client {"
+  emit "    endpoint = \"${TEMPO_ENDPOINT}\""
+  [[ -n "${TEMPO_AUTH_REF}" ]] && emit "    auth = ${TEMPO_AUTH_REF}"
+  emit "  }"
+  emit "}"
+  emit ""
+  emit "otelcol.receiver.otlp \"default\" {"
+  emit "  grpc { endpoint = \"0.0.0.0:4317\" }"
+  emit "  http { endpoint = \"0.0.0.0:4318\" }"
+  emit "  output {"
+  emit "    traces = [otelcol.exporter.otlphttp.tempo.input]"
+  emit "  }"
+  emit "}"
+  emit ""
+fi
+
+bashio::log.info "Generated Alloy config at ${GENERATED_CONFIG}"
+
+exec /usr/bin/grafana-alloy run \
+  --server.http.listen-addr="0.0.0.0:${LISTEN_PORT}" \
+  --storage.path=/config \
+  "${GENERATED_CONFIG}"

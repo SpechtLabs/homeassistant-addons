@@ -1,18 +1,40 @@
 configuration:
-  tenant_id:
-    name: Tenant ID
-    description: Die Loki and Mimir tenant ID in der die Metriken und Protokolle gespeichert werden
   loki_endpoint:
     name: Loki Endpoint
-    description: Die Endpunkt URL von deiner Loki Instanz die neue Protokolle akzeptiert
+    description: Loki Push-URL (z. B. https://loki.example.net/loki/api/v1/push). Leer lassen, um den Log-Versand zu deaktivieren.
+  loki_username:
+    name: Loki Benutzername
+    description: Basic-Auth-Benutzername für Loki. Bei Grafana Cloud ist das deine Loki-User-ID. Leer lassen für keine Authentifizierung.
+  loki_password:
+    name: Loki Passwort / Token
+    description: Basic-Auth-Passwort für Loki. Bei Grafana Cloud hier den Access-Policy-Token einfügen.
   mimir_endpoint:
     name: Mimir Endpoint
-    description: Die Endpunkt URL von deiner Mimir Instanz die neue Protokolle akzeptiert
+    description: Prometheus-Remote-Write-URL (z. B. https://mimir.example.net/api/v1/push). Leer lassen, um Metriken zu deaktivieren.
+  mimir_username:
+    name: Mimir Benutzername
+    description: Basic-Auth-Benutzername für Mimir. Bei Grafana Cloud ist das deine Prometheus-/Metrics-User-ID. Leer lassen für keine Authentifizierung.
+  mimir_password:
+    name: Mimir Passwort / Token
+    description: Basic-Auth-Passwort für Mimir. Bei Grafana Cloud hier den Access-Policy-Token einfügen.
+  tempo_endpoint:
+    name: Tempo Endpoint
+    description: OTLP/HTTP-Basis-URL für Traces (z. B. https://tempo.example.net). Der Pfad /v1/traces wird automatisch angehängt. Leer lassen, um Traces zu deaktivieren.
+  tempo_username:
+    name: Tempo Benutzername
+    description: Basic-Auth-Benutzername für Tempo. Bei Grafana Cloud ist das deine Traces-User-ID. Leer lassen für keine Authentifizierung.
+  tempo_password:
+    name: Tempo Passwort / Token
+    description: Basic-Auth-Passwort für Tempo. Bei Grafana Cloud hier den Access-Policy-Token einfügen.
+  tenant_id:
+    name: Tenant ID
+    description: Optionale Mandanten-ID, wird als Loki tenant_id und als X-Scope-OrgID-Header an Mimir gesendet. Leer lassen, wenn dein Backend die Mandanten-Zuordnung selbst setzt (z. B. Grafana Cloud oder ein Gateway, das den Header injiziert).
   instance_name:
     name: Instance Name
-    description: Der name deiner Home Assistant instanz
+    description: Bezeichner für diese Home-Assistant-Instanz, wird als instance-Label auf allen Logs und Metriken gesetzt.
   scrape_interval:
     name: Scrape Interval
-    description: Wie oft metriken zu Mimir geschickt werden sollen
+    description: Wie oft Metriken gesammelt und gesendet werden (z. B. 60s).
   log_level:
     name: Log Level
+    description: Ausführlichkeit der Alloy-eigenen Logs.
