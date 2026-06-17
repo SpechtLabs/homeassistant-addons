@@ -1,5 +1,9 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 0.2.1
+
+- Fix add-on failing to start (`/usr/bin/grafana-alloy: Permission denied`, exit 126): the Alloy v1.17.0 release zip ships the binary without the executable bit, so `chmod +x` it after extraction.
+
 ## 0.2.0
 
 - Per-signal configuration: `loki_endpoint`, `mimir_endpoint` and `tempo_endpoint` are now independent and optional — only configured signals are wired up.
