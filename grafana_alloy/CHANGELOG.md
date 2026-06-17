@@ -9,6 +9,7 @@
 - Config is generated at runtime from the set options; a custom `/config/config.alloy` still overrides everything.
 - Remove the unused `grafana_cloud` git-imported module (no startup network dependency).
 - Fix the Alloy self-scrape to target the real listen port.
+- Bump bundled Grafana Alloy from v1.7.5 to v1.17.0.
 
 ## 0.1.3
 
