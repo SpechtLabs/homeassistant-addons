@@ -2,7 +2,7 @@
 
 ## 0.3.0
 
-⚠️ **Breaking change**
+## ⚠️ **Breaking change**
 - Switch log ingestion from file scraping (`home-assistant.log`) to native systemd journal (`loki.source.journal`).
 - Switch base image to Debian Bookworm (`base-debian:bookworm`) for native `libsystemd` support.
 - Improve journal relabeling pipeline with fallback handling for audit transport logs and missing log levels.
