@@ -85,36 +85,79 @@ if [[ -n "${LOKI_ENDPOINT}" ]]; then
     emit "      password = \"${LOKI_PASS}\""
     emit "    }"
   fi
-  emit "  }"
-  emit "}"
-  emit ""
-  emit "loki.process \"alloy\" {"
-  emit "  forward_to = [loki.write.grafana_loki.receiver]"
-  emit "  stage.static_labels {"
-  emit "    values = {"
-  emit "      instance  = \"${INSTANCE_NAME}\","
-  emit "      hostname  = \"${HOST_LABEL}\","
-  emit "      component = \"homeassistant\","
-  emit "    }"
-  emit "  }"
-  emit "}"
-  emit ""
-  emit "loki.source.file \"homeassistant\" {"
-  emit "  forward_to = [loki.process.homeassistant.receiver]"
-  emit "  targets = ["
-  emit "    { \"__path__\" = \"/custom/config/home-assistant.log\",       \"instance\" = \"${INSTANCE_NAME}\", \"component\" = \"homeassistant\", \"hostname\" = \"${HOST_LABEL}\" },"
-  emit "    { \"__path__\" = \"/custom/config/home-assistant.log.fault\", \"instance\" = \"${INSTANCE_NAME}\", \"component\" = \"homeassistant\", \"hostname\" = \"${HOST_LABEL}\" },"
-  emit "  ]"
-  emit "}"
-  emit ""
-  emit "loki.process \"homeassistant\" {"
-  emit "  forward_to = [loki.write.grafana_loki.receiver]"
-  emit "  stage.multiline {"
-  emit '    firstline = "^\\d{4}-\\d{2}-\\d{2} \\d{1,2}:\\d{2}:\\d{2}\\.\\d{3} "'
-  emit "    max_lines = 1000"
-  emit "  }"
-  emit "}"
-  emit ""
+  emit '  }'
+  emit '}'
+  emit ''
+  emit 'loki.source.journal "journal_scrape" {'
+  emit '  max_age       = "12h0m0s"'
+  emit '  path          = "/var/log/journal"'
+  emit '  relabel_rules = discovery.relabel.journal_relabel.rules'
+  emit '  forward_to    = [loki.write.grafana_loki.receiver]'
+  emit '}'
+  emit ''
+  emit 'discovery.relabel "journal_relabel" {'
+  emit '  targets = []'
+  emit ''
+  emit '  # 1. Systemd Unit & Syslog Identifier'
+  emit '  rule {'
+  emit '    source_labels = ["__journal__systemd_unit"]'
+  emit '    target_label  = "systemd_unit"'
+  emit '  }'
+  emit '  rule {'
+  emit '    source_labels = ["__journal_syslog_identifier"]'
+  emit '    target_label  = "service_name"'
+  emit '  }'
+  emit ''
+  emit '  # 2. Audit Transport Override'
+  emit '  rule {'
+  emit '    source_labels = ["service_name", "__journal__transport"]'
+  emit '    regex         = ";(audit)"'
+  emit '    target_label  = "service_name"'
+  emit '    replacement   = "audit"'
+  emit '  }'
+  emit '  rule {'
+  emit '    source_labels = ["service_name"]'
+  emit '    target_label  = "service_name"'
+  emit '    action        = "lowercase"'
+  emit '  }'
+  emit ''
+  emit '  # 3. Syslog Facility'
+  emit '  rule {'
+  emit '    source_labels = ["__journal_syslog_facility"]'
+  emit '    target_label  = "facility"'
+  emit '  }'
+  emit ''
+  emit '  # 4. Log Level & Priority (Default to info for missing levels like audit)'
+  emit '  rule {'
+  emit '    source_labels = ["__journal_priority_keyword"]'
+  emit '    target_label  = "level"'
+  emit '  }'
+  emit '  rule {'
+  emit '    source_labels = ["level"]'
+  emit '    regex         = "^$"'
+  emit '    target_label  = "level"'
+  emit '    replacement   = "info"'
+  emit '  }'
+  emit '  rule {'
+  emit '    source_labels = ["__journal_priority"]'
+  emit '    target_label  = "priority"'
+  emit '  }'
+  emit ''
+  emit '  # 5. Static Base Labels'
+  emit '  rule {'
+  emit '    target_label = "job"'
+  emit '    replacement  = "journal"'
+  emit '  }'
+  emit '  rule {'
+  emit '    target_label = "instance"'
+  emit "    replacement  = \"${INSTANCE_NAME}\""
+  emit '  }'
+  emit '  rule {'
+  emit '    target_label = "hostname"'
+  emit "    replacement  = \"${HOST_LABEL}\""
+  emit '  }'
+  emit '}'
+  emit ''
 fi
 
 # ---- Metrics (Mimir/Prometheus) ----------------------------------------------
@@ -145,7 +188,7 @@ if [[ -n "${MIMIR_ENDPOINT}" ]]; then
   emit "  scrape_interval = \"${SCRAPE_INTERVAL}\""
   emit "  metrics_path    = \"/core/api/prometheus\""
   emit "  scheme          = \"http\""
-  emit "  bearer_token    = env(\"SUPERVISOR_TOKEN\")"
+  emit "  bearer_token    = sys.env(\"SUPERVISOR_TOKEN\")"
   emit "  targets = ["
   emit "    { \"__address__\" = \"supervisor:80\", \"instance\" = \"${INSTANCE_NAME}\", \"hostname\" = \"${HOST_LABEL}\", \"component\" = \"homeassistant\" },"
   emit "  ]"

@@ -1,5 +1,14 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 0.3.0
+
+⚠️ **Breaking change**
+- Switch log ingestion from file scraping (`home-assistant.log`) to native systemd journal (`loki.source.journal`).
+- Switch base image to Debian Bookworm (`base-debian:bookworm`) for native `libsystemd` support.
+- Improve journal relabeling pipeline with fallback handling for audit transport logs and missing log levels.
+- Update Home Assistant metadata annotations (`type: app_config` in `config.yaml` and `io.hass.type="app"` in `Dockerfile`).
+- Bump Alloy from `1.17.0` to `1.17.1`
+
 ## 0.2.1
 
 - Fix add-on failing to start (`/usr/bin/grafana-alloy: Permission denied`, exit 126): the Alloy v1.17.0 release zip ships the binary without the executable bit, so `chmod +x` it after extraction.

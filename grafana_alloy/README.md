@@ -3,24 +3,25 @@
 ![Supports aarch64 Architecture][aarch64-shield]
 ![Supports amd64 Architecture][amd64-shield]
 
-Easily export Home Assistant metrics, logs and traces to Grafana Cloud or your own observability stack.
+Easily export Home Assistant metrics, systemd journal logs and traces to Grafana Cloud or your own observability stack.
 
 ---
 
 ## 📘 Overview
 
-This add-on integrates [Grafana Alloy][grafana-alloy] with Home Assistant, allowing you to collect and forward system metrics, logs and traces to [Grafana Cloud][grafana-cloud] or a self-hosted Grafana stack.
-With Alloy and Prometheus support, you can create powerful, custom dashboards to visualize your Home Assistant data.
+This add-on integrates [Grafana Alloy][grafana-alloy] with Home Assistant, allowing you to collect and forward system metrics, systemd journal logs and traces to [Grafana Cloud][grafana-cloud] or a self-hosted Grafana stack.
+With Alloy, native journald scraping, and Prometheus support, you can create powerful, custom dashboards to visualize your Home Assistant data.
 
-Each signal is independent: configure only the endpoints you need. Set a Loki endpoint to ship logs, a Mimir endpoint to ship metrics, a Tempo endpoint to receive and forward traces — any combination works.
+Each signal is independent: configure only the endpoints you need. Set a Loki endpoint to ship native systemd journal logs, a Mimir endpoint to ship metrics, a Tempo endpoint to receive and forward traces — any combination works.
 
 ---
 
 ## ⚙️ Requirements
 
-This add-on requires the [Prometheus integration] to be enabled in Home Assistant (only needed if you ship metrics).
+ - **Logs (Loki):** Works out of the box by reading directly from the host systemd journal (`/var/log/journal`). No additional Home Assistant configuration is required.
+ - **Metrics (Mimir):** Requires the [Prometheus integration] to be enabled in Home Assistant.
 
-To enable it with the default settings, add the following to your `configuration.yaml` and restart Home Assistant:
+To enable Prometheus metrics with default settings, add the following to your `configuration.yaml` and restart Home Assistant:
 
 ```yaml
 prometheus:
@@ -36,7 +37,7 @@ All options are optional. The add-on enables a signal only when its endpoint is 
 
 | Option | Description |
 | --- | --- |
-| `loki_endpoint` | Loki push URL. Enables **logs** when set. |
+| `loki_endpoint` | Loki push URL. Enables systemd journal **logs** when set. |
 | `loki_username` / `loki_password` | Basic-auth credentials for Loki. Applied only when **both** are set. |
 | `mimir_endpoint` | Prometheus remote-write URL. Enables **metrics** when set. |
 | `mimir_username` / `mimir_password` | Basic-auth credentials for Mimir. Applied only when **both** are set. |

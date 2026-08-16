@@ -16,7 +16,13 @@ LABEL \
     io.hass.version=${BUILD_VERSION} \
     maintainer="Cedi <cedi@specht-labs.de>"
 
-RUN apk --update add libc6-compat && rm -rf /var/cache/apk/*
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libsystemd0 \
+        ca-certificates \
+        curl \
+        unzip \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN cd /tmp && \
     curl -sSLf -o alloy.zip "https://github.com/grafana/alloy/releases/download/${ALLOY_VERSION}/alloy-linux-${BUILD_ARCH//aarch64/arm64}.zip" && \
