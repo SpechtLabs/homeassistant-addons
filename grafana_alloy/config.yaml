@@ -1,6 +1,6 @@
 name: "Grafana Alloy"
 description: "Send metrics, logs & traces to Grafana Cloud or your own Grafana observability stack"
-version: "0.2.1.20"
+version: "0.3.0"
 slug: "grafana_alloy"
 init: false
 journald: true
@@ -38,4 +38,4 @@ map:
     read_only: true
   - type: app_config
     read_only: false
-#image: "ghcr.io/spechtlabs/hass-addon-grafana-alloy-{arch}"
+image: "ghcr.io/spechtlabs/hass-addon-grafana-alloy-{arch}"
