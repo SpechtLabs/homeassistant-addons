@@ -36,6 +36,6 @@ map:
   - type: homeassistant_config
     path: /custom/config
     read_only: true
-  - type: app_config
+  - type: addon_config
     read_only: false
 image: "ghcr.io/spechtlabs/hass-addon-grafana-alloy-{arch}"
