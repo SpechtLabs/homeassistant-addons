@@ -1,0 +1,81 @@
+# .mise.toml — local tooling, exact pins (repo convention)
+#
+# The tasks below define how the add-ons are linted and checked. CI uses these
+# tasks; the Home Assistant builder builds and publishes the images (see
+# .github/workflows/builder.yaml). Renovate keeps every pin in this file
+# current.
+
+[settings]
+# The pins below are the only source of tool versions; never read them from
+# .nvmrc, .node-version and friends.
+idiomatic_version_file_enable_tools = []
+
+[tools]
+# Pre-commit for Git hooks
+pre-commit = "4.6.2"
+
+# Linters
+hadolint = "2.15.1"
+yamllint = "1.38.0"
+actionlint = "1.7.12"
+# Lints the add-ons' s6 service scripts. actionlint also runs it on every
+# `run:` script when it's on PATH, and silently skips them when it isn't.
+shellcheck = "0.11.0"
+# markdownlint-cli2 is an npm package; mise installs it with this node.
+node = "24.21.0"
+markdownlint-cli2 = "0.23.3"
+
+# Pins GitHub Actions to commit SHAs (see the update-gha task)
+pinact = "5.0.0"
+
+[tasks.lint]
+description = "Lint the Dockerfiles, the s6 service scripts, YAML, Markdown and the workflows"
+depends = ["docker-lint", "shell-lint", "yaml-lint", "md-lint", "actionlint"]
+
+[tasks.docker-lint]
+description = "Lint every add-on's Dockerfile with hadolint"
+run = "git ls-files -z -- '*/Dockerfile' | xargs -0 hadolint"
+
+# The s6 run and finish scripts have no file extension and run under bashio,
+# which is bash with the bashio library sourced.
+[tasks.shell-lint]
+description = "Lint the add-ons' s6 service scripts with shellcheck"
+run = "git ls-files -z -- '*/rootfs/etc/services.d/*/run' '*/rootfs/etc/services.d/*/finish' | xargs -0 shellcheck --shell=bash"
+
+[tasks.yaml-lint]
+description = "Lint every YAML file in the repository"
+run = "yamllint --strict ."
+
+[tasks.md-lint]
+description = "Lint the Markdown files"
+run = "markdownlint-cli2"
+
+[tasks.md-fmt]
+description = "Fix what markdownlint can fix in the Markdown files"
+run = "markdownlint-cli2 --fix"
+
+[tasks.actionlint]
+description = "Lint the GitHub Actions workflows"
+run = "actionlint"
+
+# Builds each image the way build-addon.yaml does, for the platform Docker runs
+# on, without the labels the workflow adds. Needs a Docker daemon with
+# BuildKit, which is why `check` leaves it to CI.
+[tasks.build]
+description = "Build every add-on's image locally with Docker BuildKit, tagged local/<add-on>"
+run = """
+for config in */config.yaml; do
+  addon="${config%/config.yaml}"
+  docker buildx build --load --tag "local/${addon}" "${addon}"
+done
+"""
+
+[tasks.check]
+description = "The definition of done: every gate CI runs"
+depends = ["lint"]
+
+[tasks.update-gha]
+description = "Pin GitHub Actions to commit SHAs (Renovate keeps them current afterwards)"
+# home-assistant/actions has no releases; its helpers are pinned to a commit on
+# master by hand, which Renovate then keeps current.
+run = "pinact run -e 'home-assistant/actions'"

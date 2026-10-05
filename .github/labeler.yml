@@ -1,0 +1,48 @@
+# The Calendar API add-on
+calendar_api:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "calendar_api/**"
+
+# The Grafana Alloy add-on
+grafana_alloy:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "grafana_alloy/**"
+
+# Home Assistant blueprints
+blueprints:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "blueprints/**"
+
+# Documentation: the add-on READMEs and changelogs the add-on store shows
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+
+# Build, release, and CI plumbing
+build:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+          - ".mise.toml"
+          - ".pre-commit-config.yaml"
+          - ".markdownlint-cli2.yaml"
+          - ".yamllint.yaml"
+          - ".editorconfig"
+          - "renovate.json"
+          - "repository.yaml"
+
+# Add 'enhancement' to any PR whose head branch starts with `feat` or `feature`
+enhancement:
+  - head-branch:
+      - "^feat"
+      - "^feature"
+
+# Add 'bug' to any PR whose head branch starts with `fix` or `bug`
+bug:
+  - head-branch:
+      - "^fix"
+      - "^bug"

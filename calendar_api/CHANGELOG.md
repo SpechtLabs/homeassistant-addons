@@ -1,8 +1,13 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 0.3.3
+
+- Move to the Alpine 3.23 base image.
+- Build the image with Home Assistant's BuildKit-based builder actions, on the multi-platform base image, and sign it with Cosign.
+
 ## 0.3.2
 
-- Bump CalendarAPI to v0.1.9 to fix random bug:
+- Bump CalendarAPI to v0.1.9 to fix a random bug
 
 ## 0.3.1
 

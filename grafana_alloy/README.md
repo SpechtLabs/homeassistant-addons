@@ -18,8 +18,8 @@ Each signal is independent: configure only the endpoints you need. Set a Loki en
 
 ## ⚙️ Requirements
 
- - **Logs (Loki):** Works out of the box by reading directly from the host systemd journal (`/var/log/journal`). No additional Home Assistant configuration is required.
- - **Metrics (Mimir):** Requires the [Prometheus integration] to be enabled in Home Assistant.
+- **Logs (Loki):** Works out of the box by reading directly from the host systemd journal (`/var/log/journal`). No additional Home Assistant configuration is required.
+- **Metrics (Mimir):** Requires the [Prometheus integration] to be enabled in Home Assistant.
 
 To enable Prometheus metrics with default settings, add the following to your `configuration.yaml` and restart Home Assistant:
 
@@ -94,12 +94,12 @@ For advanced setups, place a complete Alloy config in your Home Assistant config
 1. Create a Grafana Cloud account and set up your stack.
 2. Create an Access Policy.
 
-![Create Access Policy](https://github.com/grafana/home-assistant-addons/raw/main/grafana_cloud/images/create-access-policy.png)
+   ![Create Access Policy](https://github.com/grafana/home-assistant-addons/raw/main/grafana_cloud/images/create-access-policy.png)
 
-   * Display Name: Home Assistant
-   * Name: home-assistant
-   * Realms: Your stack
-   * Scopes: Metrics `write`, Logs `write`, Traces `write`, Stacks `read`
+   - Display Name: Home Assistant
+   - Name: home-assistant
+   - Realms: Your stack
+   - Scopes: Metrics `write`, Logs `write`, Traces `write`, Stacks `read`
 
 3. Generate an API token on the access policy and copy it.
 4. For each of Loki, Mimir (Prometheus) and Tempo, copy the endpoint URL and the numeric user ID from its "Details" page in the portal, and paste the URL into the matching `*_endpoint`, the user ID into `*_username`, and the token into `*_password`.
@@ -108,10 +108,8 @@ For advanced setups, place a complete Alloy config in your Home Assistant config
 
 Once configured, start the add-on. It will begin collecting and sending the enabled signals to your Grafana Cloud or self-hosted endpoints.
 
-[grafana]: https://grafana.com
 [grafana-cloud]: https://grafana.com/products/cloud/
 [grafana-alloy]: https://grafana.com/docs/alloy/latest/
-[integration]: https://grafana.com/solutions/home-assistant/monitor/
 [Prometheus integration]: https://www.home-assistant.io/integrations/prometheus/
 [aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
 [amd64-shield]: https://img.shields.io/badge/amd64-yes-green.svg

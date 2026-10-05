@@ -1,0 +1,126 @@
+name: Build add-on
+
+# Builds one add-on's image for every architecture its config.yaml lists, on a
+# runner of that architecture, with Home Assistant's build-image action, and
+# publishes it when asked to. builder.yaml calls it for each add-on a change
+# touches.
+#
+# config.yaml names one image per architecture (its `image` holds `{arch}`),
+# which is what the Supervisor pulls, so there is no multi-arch manifest to
+# publish.
+on:
+  workflow_call:
+    inputs:
+      addon:
+        description: The add-on's directory
+        required: true
+        type: string
+      publish:
+        description: Push and sign the images, unless the add-on's version is published already
+        required: true
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    name: Prepare
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.config.outputs.matrix }}
+      version: ${{ steps.config.outputs.version }}
+      labels: ${{ steps.config.outputs.labels }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Get add-on information
+        id: info
+        uses: home-assistant/actions/helpers/info@06749dd8c0b54f350bc69c8752456cee498808a3 # master
+        with:
+          path: ./${{ inputs.addon }}
+
+      # The info helper prints every value as JSON.
+      - name: Read the add-on's config
+        id: config
+        env:
+          ADDON: ${{ inputs.addon }}
+          ARCHITECTURES: ${{ steps.info.outputs.architectures }}
+          IMAGE: ${{ steps.info.outputs.image }}
+          VERSION: ${{ steps.info.outputs.version }}
+          NAME: ${{ steps.info.outputs.name }}
+          DESCRIPTION: ${{ steps.info.outputs.description }}
+          URL: ${{ steps.info.outputs.url }}
+        run: |
+          set -euo pipefail
+          image="$(jq -r '. // empty' <<< "${IMAGE}")"
+          if [[ "${image}" != *"{arch}"* ]]; then
+            echo "::error file=${ADDON}/config.yaml::image must name one image per architecture with {arch}, got '${image}'"
+            exit 1
+          fi
+
+          # amd64 and aarch64 are the architectures Home Assistant still
+          # supports, each built natively on a runner of its own.
+          matrix="$(jq -c --arg image "${image}" '{include: [.[] as $arch | {
+            arch: $arch,
+            os: ({amd64: "ubuntu-24.04", aarch64: "ubuntu-24.04-arm"}[$arch] // error("unsupported architecture \($arch)")),
+            image: ($image | gsub("\\{arch\\}"; $arch))
+          }]}' <<< "${ARCHITECTURES}")"
+          echo "matrix=${matrix}" >> "${GITHUB_OUTPUT}"
+          jq . <<< "${matrix}"
+
+          echo "version=$(jq -r . <<< "${VERSION}")" >> "${GITHUB_OUTPUT}"
+
+          # The legacy builder read these labels from config.yaml; the build-image
+          # action adds io.hass.arch and io.hass.version itself.
+          {
+            echo "labels<<EOF"
+            echo "io.hass.name=$(jq -r . <<< "${NAME}")"
+            echo "io.hass.description=$(jq -r . <<< "${DESCRIPTION}")"
+            url="$(jq -r '. // empty' <<< "${URL}")"
+            if [[ -n "${url}" ]]; then
+              echo "io.hass.url=${url}"
+            fi
+            echo "EOF"
+          } >> "${GITHUB_OUTPUT}"
+
+  build:
+    name: Build ${{ matrix.arch }} image
+    needs: prepare
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      # Cosign signs the published images with the workflow's OIDC identity.
+      id-token: write
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # skip-existing builds a version that is published already, but pushes
+      # and signs nothing: the version tag and latest stay where they are.
+      - name: Build image
+        uses: home-assistant/builder/actions/build-image@7412f0023ea9b6e58e8bb5059f1660f51376f49a # 2026.09.0
+        with:
+          arch: ${{ matrix.arch }}
+          # Several images build from this repository; each needs a cache of
+          # its own.
+          cache-gha-scope: ${{ inputs.addon }}
+          container-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          context: ./${{ inputs.addon }}
+          image: ${{ matrix.image }}
+          image-tags: |
+            ${{ needs.prepare.outputs.version }}
+            latest
+          labels: ${{ needs.prepare.outputs.labels }}
+          push: ${{ inputs.publish }}
+          skip-existing: ${{ needs.prepare.outputs.version }}
+          version: ${{ needs.prepare.outputs.version }}

@@ -1,114 +1,149 @@
 name: Builder
 
+# Builds every add-on a change touches, for each architecture in its
+# config.yaml, with Home Assistant's builder actions (see build-addon.yaml).
+# Pull requests build without pushing. A push to main publishes each image
+# config.yaml names, tagged with the add-on's version and latest, unless that
+# version is published already: the Supervisor only offers an update when the
+# version changes, so a rebuild under a published version would never reach
+# anyone who has it installed.
 on:
   push:
     branches:
       - main
   pull_request:
+  # Rebuilds every add-on; publishes only versions that aren't published yet.
+  workflow_dispatch:
 
 permissions:
-  id-token: write
-  packages: write
+  contents: read
+
+# A new push to a pull request supersedes its run in flight. Pushes to main key
+# on the SHA, so a publish never cancels another one half-way.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
-  BUILD_ARGS: "--test"
-  MONITORED_FILES: "build.yaml config.yaml Dockerfile rootfs"
+  # What goes into an add-on's image, below its directory.
+  MONITORED_FILES: "config.yaml Dockerfile rootfs"
 
 jobs:
   init:
-    runs-on: ubuntu-latest
     name: Initialize builds
+    runs-on: ubuntu-latest
     outputs:
-      changed_addons: ${{ steps.changed_addons.outputs.addons }}
-      changed: ${{ steps.changed_addons.outputs.changed }}
+      changed: ${{ steps.changed.outputs.changed }}
+      addons: ${{ steps.changed.outputs.addons }}
     steps:
-      - name: Check out the repository
-        uses: actions/checkout@v7.0.1
-
-      - name: Get changed files
-        id: changed_files
-        uses: jitterbit/get-changed-files@v1
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Find add-on directories
         id: addons
-        uses: home-assistant/actions/helpers/find-addons@master
+        uses: home-assistant/actions/helpers/find-addons@06749dd8c0b54f350bc69c8752456cee498808a3 # master
 
-      - name: Get changed add-ons
-        id: changed_addons
+      # A change to the build itself rebuilds every add-on, and so does a
+      # manual run.
+      - name: Find changed add-ons
+        id: changed
+        env:
+          ADDONS: ${{ steps.addons.outputs.addons }}
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.sha }}
         run: |
-          declare -a changed_addons
-          for addon in ${{ steps.addons.outputs.addons }}; do
-            if [[ "${{ steps.changed_files.outputs.all }}" =~ $addon ]]; then
-              for file in ${{ env.MONITORED_FILES }}; do
-                  if [[ "${{ steps.changed_files.outputs.all }}" =~ $addon/$file ]]; then
-                    if [[ ! "${changed_addons[@]}" =~ $addon ]]; then
-                      changed_addons+=("\"${addon}\",");
-                    fi
+          set -euo pipefail
+          read -ra all <<< "${ADDONS}"
+          changed=()
+          if [[ "${EVENT}" == "workflow_dispatch" ]]; then
+            changed=("${all[@]}")
+          else
+            files="$(git diff --name-only "${BASE}" "${HEAD}")"
+            if grep -qE '^\.github/workflows/(builder|build-addon)\.yaml$' <<< "${files}"; then
+              changed=("${all[@]}")
+            else
+              for addon in "${all[@]}"; do
+                for path in ${MONITORED_FILES}; do
+                  if grep -q "^${addon}/${path}" <<< "${files}"; then
+                    changed+=("${addon}")
+                    break
                   fi
+                done
               done
             fi
-          done
-
-          changed=$(echo ${changed_addons[@]} | rev | cut -c 2- | rev)
-
-          if [[ -n ${changed} ]]; then
-            echo "Changed add-ons: $changed";
-            echo "changed=true" >> $GITHUB_OUTPUT;
-            echo "addons=[$changed]" >> $GITHUB_OUTPUT;
-          else
-            echo "No add-on had any monitored files changed (${{ env.MONITORED_FILES }})";
           fi
+
+          if [[ ${#changed[@]} -gt 0 ]]; then
+            echo "Changed add-ons: ${changed[*]}"
+            echo "changed=true" >> "${GITHUB_OUTPUT}"
+            echo "addons=$(jq -nc '$ARGS.positional' --args "${changed[@]}")" >> "${GITHUB_OUTPUT}"
+          else
+            echo "No add-on had any monitored files changed (${MONITORED_FILES})"
+            echo "changed=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+  # An image change under the same version is built but never published (see
+  # the top of this file), so a pull request that changes what goes into an
+  # image has to bump the add-on's version, and say what changed in its
+  # CHANGELOG.md. Renovate's bumps of an add-on's base image or bundled
+  # software fail here until someone does.
+  version:
+    name: Check add-on versions
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Require a version bump for every changed image
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          version() {
+            git show "$1:$2/config.yaml" 2>/dev/null | sed -n 's/^version:[[:space:]]*"\{0,1\}\([^"]*\)"\{0,1\}[[:space:]]*$/\1/p'
+          }
+          failed=0
+          for config in */config.yaml; do
+            addon="${config%/config.yaml}"
+            if git diff --quiet "${BASE}" "${HEAD}" -- "${addon}/Dockerfile" "${addon}/rootfs"; then
+              continue
+            fi
+            before="$(version "${BASE}" "${addon}")"
+            after="$(version "${HEAD}" "${addon}")"
+            if [[ -n "${before}" && "${before}" == "${after}" ]]; then
+              echo "::error file=${addon}/config.yaml::${addon}'s image changes, but its version is still ${after}. Bump version in ${addon}/config.yaml and add an entry to ${addon}/CHANGELOG.md, or the change never reaches anyone who has the add-on installed."
+              failed=1
+            elif ! grep -q "^## ${after}\$" "${addon}/CHANGELOG.md"; then
+              echo "::error file=${addon}/CHANGELOG.md::${addon} is now ${after}, but ${addon}/CHANGELOG.md has no '## ${after}' entry."
+              failed=1
+            else
+              echo "${addon}: ${before:-new} -> ${after}"
+            fi
+          done
+          exit "${failed}"
 
   build:
+    name: Build ${{ matrix.addon }}
     needs: init
-    runs-on: ubuntu-latest
     if: needs.init.outputs.changed == 'true'
-    name: Build ${{ matrix.arch }} ${{ matrix.addon }} add-on
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
     strategy:
+      fail-fast: false
       matrix:
-        addon: ${{ fromJson(needs.init.outputs.changed_addons) }}
-        arch: ["aarch64", "amd64", "armhf", "armv7", "i386"]
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v7.0.1
-
-      - name: Get information
-        id: info
-        uses: home-assistant/actions/helpers/info@master
-        with:
-          path: "./${{ matrix.addon }}"
-
-      - name: Check if add-on should be built
-        id: check
-        run: |
-          if [[ "${{ steps.info.outputs.architectures }}" =~ ${{ matrix.arch }} ]]; then
-             echo "build_arch=true" >> $GITHUB_OUTPUT;
-             echo "image=$(echo ${{ steps.info.outputs.image }} | cut -d'/' -f3)" >> $GITHUB_OUTPUT;
-             if [[ -z "${{ github.head_ref }}" ]] && [[ "${{ github.event_name }}" == "push" ]]; then
-                 echo "BUILD_ARGS=" >> $GITHUB_ENV;
-             fi
-           else
-             echo "${{ matrix.arch }} is not a valid arch for ${{ matrix.addon }}, skipping build";
-             echo "build_arch=false" >> $GITHUB_OUTPUT;
-          fi
-
-      - name: Login to GitHub Container Registry
-        if: env.BUILD_ARGS != '--test' && github.event_name != 'pull_request'
-        uses: docker/login-action@v4.6.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build ${{ matrix.addon }} add-on
-        if: steps.check.outputs.build_arch == 'true'
-        uses: home-assistant/builder@2026.03.2
-        with:
-          args: |
-            ${{ env.BUILD_ARGS }} \
-            --${{ matrix.arch }} \
-            --target /data/${{ matrix.addon }} \
-            --image "${{ steps.check.outputs.image }}" \
-            --docker-hub "ghcr.io/${{ github.repository_owner }}" \
-            --addon
+        addon: ${{ fromJSON(needs.init.outputs.addons) }}
+    uses: ./.github/workflows/build-addon.yaml
+    with:
+      addon: ${{ matrix.addon }}
+      publish: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}

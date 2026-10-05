@@ -1,5 +1,10 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 0.4.0
+
+- Bump Grafana Alloy from v1.17.1 to v1.20.1. The OTLP receiver now closes idle HTTP connections after a minute, as upstream OpenTelemetry does; Alloy v1.18.0 changed that default from no timeout.
+- Build the image with Home Assistant's BuildKit-based builder actions, on the multi-platform Debian base image, and sign it with Cosign.
+
 ## 0.3.1
 
 - Fix the add-on failing to start whenever `loki_endpoint` is set: the generated config left the journal relabel block unclosed, and Alloy's own logs were sent to a `loki.process` component the config no longer defined.
@@ -7,7 +12,8 @@
 
 ## 0.3.0
 
-## ⚠️ **Breaking change**
+### ⚠️ **Breaking change**
+
 - Switch log ingestion from file scraping (`home-assistant.log`) to native systemd journal (`loki.source.journal`).
 - Switch base image to Debian Bookworm (`base-debian:bookworm`) for native `libsystemd` support.
 - Improve journal relabeling pipeline with fallback handling for audit transport logs and missing log levels.
