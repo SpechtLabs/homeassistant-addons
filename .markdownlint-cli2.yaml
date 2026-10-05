@@ -1,3 +1,18 @@
 config:
+  # Default state for all rules
+  default: true
+
+  # MD013: Disable line length rule
   MD013: false
+
+  # MD041: The add-on CHANGELOG.md files start with the comment pointing at
+  # Home Assistant's changelog guidelines, not with a heading.
   MD041: false
+
+# The add-on READMEs and changelogs, the blueprint index and the repository
+# README. `mise run md-lint` and the pre-commit hook read the same list.
+globs:
+  - "**/*.md"
+
+ignores:
+  - "**/node_modules/**"

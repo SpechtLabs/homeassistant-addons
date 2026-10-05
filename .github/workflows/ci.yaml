@@ -1,0 +1,29 @@
+name: CI
+
+# Everything a pull request runs besides the image builds, which builder.yaml
+# runs for the add-ons a change touches. lint.yaml is a workflow of its own,
+# which runs on its own from the Actions tab too.
+on:
+  # The filter excludes rather than lists, so a new add-on or config file runs
+  # CI by default. Markdown stays in: the add-on READMEs and changelogs are what
+  # the Home Assistant add-on store shows, and md-lint is their only check. No
+  # check is required by the rulesets, which is what makes a workflow-level
+  # filter safe: a skipped required check would block the merge.
+  pull_request:
+    paths:
+      - "**"
+      - "!LICENSE"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A new push to a pull request supersedes its run in flight.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  lint:
+    name: Lint
+    uses: ./.github/workflows/lint.yaml

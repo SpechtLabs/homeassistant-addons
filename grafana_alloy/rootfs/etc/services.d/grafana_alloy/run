@@ -52,7 +52,11 @@ fi
 
 bashio::log.info "instance_name=${INSTANCE_NAME} scrape_interval=${SCRAPE_INTERVAL} log_level=${LOG_LEVEL}"
 bashio::log.info "logs=$([ -n "${LOKI_ENDPOINT}" ] && echo on || echo off) metrics=$([ -n "${MIMIR_ENDPOINT}" ] && echo on || echo off) traces=$([ -n "${TEMPO_ENDPOINT}" ] && echo on || echo off)"
-[ -n "${TENANT_ID}" ] && bashio::log.info "tenant_id=${TENANT_ID} (sent to backends)" || bashio::log.info "tenant_id unset (relying on backend/server-side injection)"
+if [[ -n "${TENANT_ID}" ]]; then
+  bashio::log.info "tenant_id=${TENANT_ID} (sent to backends)"
+else
+  bashio::log.info "tenant_id unset (relying on backend/server-side injection)"
+fi
 
 # ------------------------------------------------------------------------------
 # Generate config.

@@ -1,0 +1,50 @@
+repos:
+  # Generic pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: check-case-conflict
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      # --unsafe checks the syntax only: the blueprints use Home Assistant's
+      # !input tag, which a plain YAML loader has no constructor for.
+      - id: check-yaml
+        args: [--allow-multiple-documents, --unsafe]
+      - id: check-json
+      - id: mixed-line-ending
+      - id: check-added-large-files
+        name: check for added large files
+        description: Prevents giant files from being committed
+        args: ["--maxkb=500"]
+
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.23.3
+    hooks:
+      - id: markdownlint-cli2
+
+  # Run the mise-pinned linters rather than copies pre-commit would build, so
+  # the hooks and CI agree on the versions.
+  - repo: local
+    hooks:
+      - id: actionlint
+        name: actionlint
+        entry: mise exec -- actionlint
+        language: system
+        files: ^\.github/workflows/.*\.ya?ml$
+      - id: hadolint
+        name: hadolint
+        entry: mise exec -- hadolint
+        language: system
+        files: (^|/)Dockerfile$
+      - id: shellcheck
+        name: shellcheck (s6 service scripts)
+        entry: mise exec -- shellcheck --shell=bash
+        language: system
+        files: /rootfs/etc/services\.d/[^/]+/(run|finish)$
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks

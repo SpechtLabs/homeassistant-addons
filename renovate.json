@@ -2,7 +2,10 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended",
-    ":semanticCommits"
+    ":semanticCommits",
+    "helpers:pinGitHubActionDigests",
+    "customManagers:githubActionsVersions",
+    "customManagers:dockerfileVersions"
   ],
   "timezone": "Europe/Berlin",
   "dependencyDashboard": true,
@@ -16,6 +19,16 @@
   "labels": [
     "dependencies"
   ],
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "labels": [
+      "dependencies",
+      "security"
+    ]
+  },
+  "pre-commit": {
+    "enabled": true
+  },
   "lockFileMaintenance": {
     "enabled": true,
     "schedule": [
@@ -23,23 +36,16 @@
     ],
     "automerge": true
   },
-  "customManagers": [
-    {
-      "customType": "regex",
-      "description": "Track the Go toolchain version pinned in .mise.toml.",
-      "managerFilePatterns": [
-        "/(^|/)\\.mise\\.toml$/"
-      ],
-      "matchStrings": [
-        "(?:^|\\n)go\\s*=\\s*\"(?<currentValue>\\d+\\.\\d+(?:\\.\\d+)?)\""
-      ],
-      "depNameTemplate": "go",
-      "packageNameTemplate": "go",
-      "datasourceTemplate": "golang-version",
-      "versioningTemplate": "semver"
-    }
-  ],
   "packageRules": [
+    {
+      "description": "mise is pinned as MISE_VERSION in every workflow that sets it up; move them at once, and only to a release a day old, the age mise-action waited for before the pin.",
+      "matchDepNames": [
+        "jdx/mise"
+      ],
+      "groupName": "mise",
+      "groupSlug": "mise",
+      "minimumReleaseAge": "1 day"
+    },
     {
       "description": "Automerge digest, pin, patch, and minor updates once CI passes.",
       "matchUpdateTypes": [
@@ -74,47 +80,17 @@
       "dependencyDashboardApproval": false
     },
     {
-      "description": "Do not manage npm as a separate mise tool; Node provides npm.",
+      "description": "An add-on's base image and the software it bundles change what its users run, so they are fix(deps) rather than chore(deps), one PR per add-on. The Supervisor only offers an update when the add-on's version changes, so these PRs fail builder.yaml's version check until someone bumps version in the add-on's config.yaml and adds a CHANGELOG.md entry; they never automerge.",
       "matchFileNames": [
-        ".mise.toml"
+        "*/Dockerfile"
       ],
-      "matchDepNames": [
-        "npm"
-      ],
-      "enabled": false
-    },
-    {
-      "description": "Group Go module updates together.",
-      "matchManagers": [
-        "gomod"
-      ],
-      "groupName": "Go modules",
-      "groupSlug": "go-modules"
-    },
-    {
-      "description": "Update .mise.toml and go.mod Go versions together.",
-      "matchDatasources": [
-        "golang-version"
-      ],
-      "matchDepNames": [
-        "go"
-      ],
-      "groupName": "Go toolchain",
-      "groupSlug": "go-toolchain",
-      "rangeStrategy": "bump",
-      "automerge": true,
-      "automergeType": "pr",
-      "platformAutomerge": true,
-      "dependencyDashboardApproval": false
-    },
-    {
-      "description": "Group docs site dependencies together.",
-      "matchFileNames": [
-        "docs/package.json",
-        "docs/bun.lock"
-      ],
-      "groupName": "docs dependencies",
-      "groupSlug": "docs-dependencies"
+      "semanticCommitType": "fix",
+      "additionalBranchPrefix": "{{parentDir}}-",
+      "commitMessageSuffix": "in {{parentDir}}",
+      "automerge": false,
+      "prBodyNotes": [
+        "This changes the `{{parentDir}}` image. Bump `version` in `{{parentDir}}/config.yaml` and add a matching entry to `{{parentDir}}/CHANGELOG.md` on this branch before merging; Home Assistant only offers the update to installed add-ons when the version changes."
+      ]
     }
   ]
 }
