@@ -1,5 +1,10 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 0.3.1
+
+- Fix the add-on failing to start whenever `loki_endpoint` is set: the generated config left the journal relabel block unclosed, and Alloy's own logs were sent to a `loki.process` component the config no longer defined.
+- Map the add-on config directory as `addon_config` again; 0.3.0 renamed it to `app_config`, which the Supervisor does not support.
+
 ## 0.3.0
 
 ## ⚠️ **Breaking change**
