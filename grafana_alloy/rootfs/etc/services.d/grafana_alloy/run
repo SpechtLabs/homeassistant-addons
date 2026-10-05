@@ -88,6 +88,18 @@ if [[ -n "${LOKI_ENDPOINT}" ]]; then
   emit '  }'
   emit '}'
   emit ''
+  # Alloy's own logs (see the logging block above).
+  emit "loki.process \"alloy\" {"
+  emit "  forward_to = [loki.write.grafana_loki.receiver]"
+  emit "  stage.static_labels {"
+  emit "    values = {"
+  emit "      instance  = \"${INSTANCE_NAME}\","
+  emit "      hostname  = \"${HOST_LABEL}\","
+  emit "      component = \"homeassistant\","
+  emit "    }"
+  emit "  }"
+  emit "}"
+  emit ''
   emit '// For the default level we use "unknown"'
   emit 'loki.source.journal "journal_scrape" {'
   emit '  max_age       = "12h0m0s"'
@@ -144,6 +156,7 @@ if [[ -n "${LOKI_ENDPOINT}" ]]; then
   emit '    source_labels = ["__journal_priority"]'
   emit '    target_label  = "priority"'
   emit '  }'
+  emit '}'
   emit ''
 fi
 
