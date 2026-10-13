@@ -37,7 +37,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up mise
-        uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
+        uses: jdx/mise-action@08ae2a091c038e1e05ec6f5115dc5c69d5a2a6b8 # v5.1.2
         with:
           version: ${{ env.MISE_VERSION }}
           install_args: ${{ env.MISE_TOOLS }}
@@ -74,7 +74,7 @@ jobs:
 
       - name: Find add-on directories
         id: addons
-        uses: home-assistant/actions/helpers/find-addons@06749dd8c0b54f350bc69c8752456cee498808a3 # master
+        uses: home-assistant/actions/helpers/find-addons@50baf3a307f87100cf550d4ae127746595030d5d # master
 
   addon:
     name: Lint add-on ${{ matrix.path }}
