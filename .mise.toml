@@ -12,7 +12,7 @@ idiomatic_version_file_enable_tools = []
 
 [tools]
 # Pre-commit for Git hooks
-pre-commit = "4.6.2"
+pre-commit = "4.7.0"
 
 # Linters
 hadolint = "2.15.1"
