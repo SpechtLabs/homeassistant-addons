@@ -22,7 +22,7 @@ actionlint = "1.7.12"
 # `run:` script when it's on PATH, and silently skips them when it isn't.
 shellcheck = "0.11.0"
 # markdownlint-cli2 is an npm package; mise installs it with this node.
-node = "24.21.0"
+node = "24.22.0"
 markdownlint-cli2 = "0.23.3"
 
 # Pins GitHub Actions to commit SHAs (see the update-gha task)
