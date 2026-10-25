@@ -26,7 +26,7 @@ node = "24.22.1"
 markdownlint-cli2 = "0.24.0"
 
 # Pins GitHub Actions to commit SHAs (see the update-gha task)
-pinact = "5.0.1"
+pinact = "5.0.2"
 
 [tasks.lint]
 description = "Lint the Dockerfiles, the s6 service scripts, YAML, Markdown and the workflows"
