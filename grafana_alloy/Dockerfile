@@ -8,7 +8,7 @@ FROM ${BUILD_FROM}
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # renovate: datasource=github-releases depName=grafana/alloy
-ARG ALLOY_VERSION=v1.20.1
+ARG ALLOY_VERSION=v1.21.3
 # Set by BuildKit: amd64 or arm64, which is how Alloy names its archives.
 ARG TARGETARCH
 
